@@ -10,7 +10,8 @@ import 'package:juka/features/dashboard/presentation/widgets/flow_summary_card.d
 import 'package:juka/features/dashboard/presentation/widgets/net_worth_card.dart';
 import 'package:juka/features/dashboard/presentation/widgets/recent_operations_card.dart';
 import 'package:juka/features/dashboard/presentation/widgets/spending_breakdown_card.dart';
-import 'package:juka/shared/widget/app_outlined_button.dart';
+import 'package:juka/shared/widget/error_view.dart';
+import 'package:juka/shared/widget/loading_view.dart';
 import 'package:juka/shared/widget/padding.dart';
 
 /// Onglet d'accueil : répond à « où j'en suis ? » en un coup d'œil.
@@ -62,9 +63,14 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
               if (overview != null)
                 _DashboardContent(overview: overview)
               else if (state.isLoading)
-                const _DashboardLoading()
+                const LoadingView(
+                  message: 'Chargement de votre tableau de bord…',
+                )
               else
-                _DashboardError(message: state.errorMessage, onRetry: _refresh),
+                ErrorView(
+                  message: state.errorMessage,
+                  onRetry: () => _refresh(),
+                ),
             ],
           ),
         ),
@@ -126,74 +132,6 @@ class _DashboardContent extends StatelessWidget {
         AppSize.cardSpacing.ph,
         DashboardAlertsCard(alerts: overview.alerts),
       ],
-    );
-  }
-}
-
-/// Indicateur affiché pendant le premier chargement.
-class _DashboardLoading extends StatelessWidget {
-  const _DashboardLoading();
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: 260,
-      child: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const CircularProgressIndicator(strokeWidth: 2.6),
-            16.ph,
-            const Text(
-              'Chargement de votre tableau de bord…',
-              style: TextStyle(color: AppColors.textMuted, fontSize: 14),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-/// Écran d'erreur avec possibilité de relancer le chargement.
-class _DashboardError extends StatelessWidget {
-  const _DashboardError({required this.message, required this.onRetry});
-
-  final String? message;
-  final Future<void> Function() onRetry;
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 48),
-      child: Column(
-        children: [
-          const Icon(
-            Icons.cloud_off_rounded,
-            size: 42,
-            color: AppColors.textMuted,
-          ),
-          16.ph,
-          Text(
-            message ?? 'Impossible de charger vos données.',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: isDark ? AppColors.textWhite : AppColors.textDark,
-              fontSize: 14.5,
-              height: 1.4,
-            ),
-          ),
-          20.ph,
-          AppOutlinedButton(
-            label: 'Réessayer',
-            icon: Icons.refresh_rounded,
-            isExpanded: false,
-            onPressed: () => onRetry(),
-          ),
-        ],
-      ),
     );
   }
 }

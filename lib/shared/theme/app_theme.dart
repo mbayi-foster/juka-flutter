@@ -87,6 +87,19 @@ abstract final class AppTheme {
           ),
         ),
       ),
+      floatingActionButtonTheme: FloatingActionButtonThemeData(
+        backgroundColor: AppColors.primary,
+        foregroundColor: AppColors.textDark,
+        elevation: 0,
+        highlightElevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppSize.radius * 1.4),
+        ),
+        extendedTextStyle: const TextStyle(
+          fontSize: 15,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
       // Les labels « flottent » dès que le champ est focus ou rempli.
       inputDecorationTheme: InputDecorationThemeData(
         filled: true,

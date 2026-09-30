@@ -37,4 +37,12 @@ class AppColors {
   static const Color categorySavings = Color(0xFFF5B301);
   static const Color categoryIncome = Color(0xFF2E7D32);
   static const Color categoryOther = Color(0xFF8A8A8A);
+
+  // --- Palette des types de comptes ---
+  static const Color accountBank = Color(0xFF0288D1);
+  static const Color accountMobileMoney = Color(0xFF7E57C2);
+  static const Color accountCash = Color(0xFF2E7D32);
+  static const Color accountSavings = Color(0xFFF5B301);
+  static const Color accountDebt = Color(0xFFE53935);
+  static const Color accountReceivable = Color(0xFF26A69A);
 }

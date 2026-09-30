@@ -1,4 +1,6 @@
 import 'package:go_router/go_router.dart';
+import 'package:juka/features/accounts/presentation/pages/account_detail_page.dart';
+import 'package:juka/features/accounts/presentation/pages/account_form_page.dart';
 import 'package:juka/features/accounts/presentation/pages/accounts_page.dart';
 import 'package:juka/features/auth/presentation/pages/forgot_password_page.dart';
 import 'package:juka/features/auth/presentation/pages/login_page.dart';
@@ -39,6 +41,31 @@ abstract final class AppRouter {
                 path: AppRoutes.accounts,
                 name: 'accounts',
                 builder: (context, state) => const AccountsPage(),
+                routes: [
+                  // Déclaré avant `:id` pour que « nouveau » ne soit pas
+                  // interprété comme un identifiant de compte.
+                  GoRoute(
+                    path: 'nouveau',
+                    name: 'accountCreate',
+                    builder: (context, state) => const AccountFormPage(),
+                  ),
+                  GoRoute(
+                    path: ':id',
+                    name: 'accountDetail',
+                    builder: (context, state) => AccountDetailPage(
+                      accountId: state.pathParameters['id']!,
+                    ),
+                    routes: [
+                      GoRoute(
+                        path: 'modifier',
+                        name: 'accountEdit',
+                        builder: (context, state) => AccountFormPage(
+                          accountId: state.pathParameters['id'],
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ],
           ),

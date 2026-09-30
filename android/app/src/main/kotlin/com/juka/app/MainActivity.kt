@@ -1,4 +1,4 @@
-package com.example.juka
+package com.juka.app
 
 import io.flutter.embedding.android.FlutterActivity
 

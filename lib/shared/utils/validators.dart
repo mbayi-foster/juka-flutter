@@ -1,3 +1,5 @@
+import 'package:juka/shared/utils/money_formatter.dart';
+
 /// Validateurs de formulaires réutilisables dans toute l'application.
 ///
 /// Chaque méthode retourne `null` lorsque la valeur est valide, sinon le
@@ -54,6 +56,18 @@ abstract final class AppValidators {
     }
     if (value != password) {
       return 'Les mots de passe ne correspondent pas';
+    }
+    return null;
+  }
+
+  /// Vérifie qu'une saisie est un montant exploitable (`-1 200,50`, `50000`…).
+  static String? amount(String? value, {String label = 'Le montant'}) {
+    final input = value?.trim() ?? '';
+    if (input.isEmpty) {
+      return '$label est obligatoire';
+    }
+    if (MoneyFormatter.tryParse(input) == null) {
+      return 'Saisissez un montant valide';
     }
     return null;
   }

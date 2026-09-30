@@ -12,4 +12,15 @@ class AppRoutes {
   static const String login = '/login';
   static const String register = '/register';
   static const String forgotPassword = '/forgot-password';
+
+  // --- Comptes (sous-routes de l'onglet) ---
+
+  /// Création d'un compte.
+  static const String accountCreate = '$accounts/nouveau';
+
+  /// Détail d'un compte.
+  static String accountDetail(String id) => '$accounts/$id';
+
+  /// Modification d'un compte.
+  static String accountEdit(String id) => '$accounts/$id/modifier';
 }

@@ -46,6 +46,9 @@ abstract final class DateFormatter {
   static String monthYear(DateTime date) =>
       '${_longMonths[date.month - 1]} ${date.year}';
 
+  /// `sept.` — mois abrégé, sans le quantième.
+  static String shortMonth(DateTime date) => _shortMonths[date.month - 1];
+
   static DateTime _dayOnly(DateTime date) =>
       DateTime(date.year, date.month, date.day);
 }

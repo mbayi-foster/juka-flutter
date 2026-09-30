@@ -16,11 +16,12 @@ void main() {
     await tester.pumpWidget(const ProviderScope(child: MyApp()));
     await tester.pumpAndSettle();
 
-    // « Tableau de bord » apparaît dans l'en-tête et dans la barre du bas.
-    expect(find.text('Tableau de bord'), findsNWidgets(2));
+    // En-tête du tableau de bord…
+    expect(find.text('Tableau de bord'), findsOneWidget);
     expect(find.text('Patrimoine net'), findsOneWidget);
 
-    // Les quatre onglets de la barre de navigation.
+    // …et les quatre onglets de la barre de navigation.
+    expect(find.text('Dashboard'), findsOneWidget);
     expect(find.text('Comptes'), findsOneWidget);
     expect(find.text('Opérations'), findsOneWidget);
     expect(find.text('Paramètres'), findsOneWidget);
