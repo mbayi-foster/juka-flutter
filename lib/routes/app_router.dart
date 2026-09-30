@@ -1,0 +1,82 @@
+import 'package:go_router/go_router.dart';
+import 'package:juka/features/accounts/presentation/pages/accounts_page.dart';
+import 'package:juka/features/auth/presentation/pages/forgot_password_page.dart';
+import 'package:juka/features/auth/presentation/pages/login_page.dart';
+import 'package:juka/features/auth/presentation/pages/register_page.dart';
+import 'package:juka/features/dashboard/presentation/pages/dashboard_page.dart';
+import 'package:juka/features/main/presentation/pages/main_shell.dart';
+import 'package:juka/features/operations/presentation/pages/operations_page.dart';
+import 'package:juka/features/settings/presentation/pages/settings_page.dart';
+import 'package:juka/routes/app_routes.dart';
+
+/// Table de routage de l'application (go_router).
+///
+/// Les onglets principaux sont regroupés dans une `StatefulShellRoute` : la
+/// barre de navigation et l'état de chaque onglet sont ainsi conservés. Les
+/// écrans d'authentification restent hors de la coquille, donc sans barre de
+/// navigation.
+abstract final class AppRouter {
+  static final GoRouter router = GoRouter(
+    // L'application s'ouvre directement sur le tableau de bord.
+    initialLocation: AppRoutes.dashboard,
+    routes: [
+      StatefulShellRoute.indexedStack(
+        builder: (context, state, navigationShell) =>
+            MainShell(navigationShell: navigationShell),
+        branches: [
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.dashboard,
+                name: 'dashboard',
+                builder: (context, state) => const DashboardPage(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.accounts,
+                name: 'accounts',
+                builder: (context, state) => const AccountsPage(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.operations,
+                name: 'operations',
+                builder: (context, state) => const OperationsPage(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.settings,
+                name: 'settings',
+                builder: (context, state) => const SettingsPage(),
+              ),
+            ],
+          ),
+        ],
+      ),
+      GoRoute(
+        path: AppRoutes.login,
+        name: 'login',
+        builder: (context, state) => const LoginPage(),
+      ),
+      GoRoute(
+        path: AppRoutes.register,
+        name: 'register',
+        builder: (context, state) => const RegisterPage(),
+      ),
+      GoRoute(
+        path: AppRoutes.forgotPassword,
+        name: 'forgotPassword',
+        builder: (context, state) => const ForgotPasswordPage(),
+      ),
+    ],
+  );
+}
