@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:juka/common/enums/account_type.dart';
 import 'package:juka/common/enums/app_currency.dart';
 import 'package:juka/features/accounts/data/datasources/accounts_local_data_source.dart';
+import 'package:juka/features/accounts/data/datasources/accounts_sqflite_data_source.dart';
 import 'package:juka/features/accounts/data/repositories/accounts_repository_impl.dart';
 import 'package:juka/features/accounts/domain/entities/account_balance_point.dart';
 import 'package:juka/features/accounts/domain/failures/accounts_failure.dart';
@@ -18,8 +19,13 @@ import 'package:juka/features/accounts/presentation/state/accounts_state.dart';
 // Injection des dépendances (data -> domain)
 // ---------------------------------------------------------------------------
 
+/// Source de données des comptes.
+///
+/// Le module est « débranchable » : le domaine et l'interface utilisateur ne
+/// dépendent que de [AccountsLocalDataSource]. On injecte ici l'implémentation
+/// SQLite ; les tests la remplacent par l'implémentation en mémoire.
 final accountsLocalDataSourceProvider = Provider<AccountsLocalDataSource>(
-  (ref) => AccountsLocalDataSourceImpl(),
+  (ref) => AccountsSqfliteDataSource(),
 );
 
 final accountsRepositoryProvider = Provider<AccountsRepository>(

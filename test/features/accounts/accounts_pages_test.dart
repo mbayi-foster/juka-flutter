@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:juka/features/accounts/data/datasources/accounts_local_data_source.dart';
 import 'package:juka/features/accounts/presentation/pages/account_detail_page.dart';
 import 'package:juka/features/accounts/presentation/pages/account_form_page.dart';
 import 'package:juka/features/accounts/presentation/pages/accounts_page.dart';
@@ -17,11 +18,26 @@ void _useLargeSurface(WidgetTester tester) {
   addTearDown(tester.view.reset);
 }
 
+/// `sqflite` n'est pas disponible dans l'environnement de test : on injecte la
+/// source en mémoire. C'est précisément l'intérêt de l'interface
+/// [AccountsLocalDataSource] — permuter l'implémentation sans rien changer
+/// d'autre.
+ProviderContainer _createContainer() => ProviderContainer(
+  overrides: [
+    accountsLocalDataSourceProvider.overrideWith(
+      (ref) => AccountsLocalDataSourceImpl(),
+    ),
+  ],
+);
+
 Widget _wrap(Widget page, [ProviderContainer? container]) {
-  final app = MaterialApp(theme: AppTheme.light, home: page);
-  return container == null
-      ? ProviderScope(child: app)
-      : UncontrolledProviderScope(container: container, child: app);
+  final scope = container ?? _createContainer();
+  if (container == null) addTearDown(scope.dispose);
+
+  return UncontrolledProviderScope(
+    container: scope,
+    child: MaterialApp(theme: AppTheme.light, home: page),
+  );
 }
 
 /// Enveloppe munie d'un routeur, pour les écrans qui naviguent.
@@ -45,7 +61,7 @@ Widget _wrapRouted(Widget page, ProviderContainer container) {
 }
 
 Future<ProviderContainer> _loadedContainer() async {
-  final container = ProviderContainer();
+  final container = _createContainer();
   addTearDown(container.dispose);
   await container.read(accountsControllerProvider.notifier).load();
   return container;

@@ -1,5 +1,6 @@
 import 'package:juka/common/enums/account_type.dart';
 import 'package:juka/common/enums/app_currency.dart';
+import 'package:juka/features/accounts/data/datasources/balance_history_builder.dart';
 import 'package:juka/features/accounts/data/exceptions/accounts_exception.dart';
 import 'package:juka/features/accounts/domain/entities/account.dart';
 import 'package:juka/features/accounts/domain/entities/account_balance_point.dart';
@@ -34,10 +35,9 @@ abstract interface class AccountsLocalDataSource {
 
 /// Implémentation en mémoire, pré-remplie de comptes de démonstration.
 ///
-/// Elle permet de faire tourner l'application sans base de données. Les comptes
-/// sont conservés tant que l'application vit : il suffira de remplacer le corps
-/// des méthodes par du `sqflite` (dépendance déjà présente) ou par les appels
-/// HTTP de `api-juka`, et de lever une [AccountsException] en cas d'échec.
+/// Utilisée par les tests et les démonstrations, où `sqflite` n'est pas
+/// disponible. En production, c'est `AccountsSqfliteDataSource` qui est
+/// injectée : les deux respectent le même contrat [AccountsLocalDataSource].
 class AccountsLocalDataSourceImpl implements AccountsLocalDataSource {
   AccountsLocalDataSourceImpl() {
     _seed();
@@ -45,19 +45,6 @@ class AccountsLocalDataSourceImpl implements AccountsLocalDataSource {
 
   /// Latence simulée pour rendre les états de chargement visibles.
   static const Duration _latency = Duration(milliseconds: 250);
-
-  /// Nombre de mois d'historique de solde exposés.
-  static const int _historyMonths = 6;
-
-  /// Progression appliquée au solde courant pour reconstituer l'historique.
-  static const List<double> _historyProgression = [
-    0.72,
-    0.79,
-    0.85,
-    0.91,
-    0.96,
-    1,
-  ];
 
   final List<Account> _accounts = [];
 
@@ -75,7 +62,7 @@ class AccountsLocalDataSourceImpl implements AccountsLocalDataSource {
     String accountId,
   ) async {
     await Future<void>.delayed(_latency);
-    return _buildHistory(_accounts[_indexOf(accountId)]);
+    return BalanceHistoryBuilder.build(_accounts[_indexOf(accountId)]);
   }
 
   @override
@@ -179,19 +166,6 @@ class AccountsLocalDataSourceImpl implements AccountsLocalDataSource {
   String? _normalizeNote(String? note) {
     final trimmed = note?.trim() ?? '';
     return trimmed.isEmpty ? null : trimmed;
-  }
-
-  List<AccountBalancePoint> _buildHistory(Account account) {
-    final now = DateTime.now();
-    return [
-      for (var monthsAgo = _historyMonths - 1; monthsAgo >= 0; monthsAgo--)
-        AccountBalancePoint(
-          month: DateTime(now.year, now.month - monthsAgo),
-          balance:
-              account.currentBalance *
-              _historyProgression[_historyMonths - 1 - monthsAgo],
-        ),
-    ];
   }
 
   void _seed() {
