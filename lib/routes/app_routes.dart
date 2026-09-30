@@ -23,4 +23,12 @@ class AppRoutes {
 
   /// Modification d'un compte.
   static String accountEdit(String id) => '$accounts/$id/modifier';
+
+  // --- Opérations (sous-routes de l'onglet) ---
+
+  /// Saisie rapide d'un revenu, d'une dépense ou d'un transfert.
+  static const String operationCreate = '$operations/nouvelle';
+
+  /// Modification d'une opération existante.
+  static String operationEdit(String id) => '$operations/$id/modifier';
 }

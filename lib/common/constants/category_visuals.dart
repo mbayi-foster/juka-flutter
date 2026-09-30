@@ -18,6 +18,7 @@ abstract final class CategoryVisuals {
     TransactionCategory.subscriptions => Icons.subscriptions_rounded,
     TransactionCategory.salary => Icons.payments_rounded,
     TransactionCategory.savings => Icons.savings_rounded,
+    TransactionCategory.transfer => Icons.swap_horiz_rounded,
     TransactionCategory.other => Icons.category_rounded,
   };
 
@@ -32,6 +33,7 @@ abstract final class CategoryVisuals {
     TransactionCategory.subscriptions => AppColors.categorySubscriptions,
     TransactionCategory.salary => AppColors.categoryIncome,
     TransactionCategory.savings => AppColors.categorySavings,
+    TransactionCategory.transfer => AppColors.info,
     TransactionCategory.other => AppColors.categoryOther,
   };
 }

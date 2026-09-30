@@ -7,6 +7,7 @@ import 'package:juka/features/auth/presentation/pages/login_page.dart';
 import 'package:juka/features/auth/presentation/pages/register_page.dart';
 import 'package:juka/features/dashboard/presentation/pages/dashboard_page.dart';
 import 'package:juka/features/main/presentation/pages/main_shell.dart';
+import 'package:juka/features/operations/presentation/pages/operation_form_page.dart';
 import 'package:juka/features/operations/presentation/pages/operations_page.dart';
 import 'package:juka/features/settings/presentation/pages/settings_page.dart';
 import 'package:juka/routes/app_routes.dart';
@@ -75,6 +76,20 @@ abstract final class AppRouter {
                 path: AppRoutes.operations,
                 name: 'operations',
                 builder: (context, state) => const OperationsPage(),
+                routes: [
+                  GoRoute(
+                    path: 'nouvelle',
+                    name: 'operationCreate',
+                    builder: (context, state) => const OperationFormPage(),
+                  ),
+                  GoRoute(
+                    path: ':id/modifier',
+                    name: 'operationEdit',
+                    builder: (context, state) => OperationFormPage(
+                      operationId: state.pathParameters['id']!,
+                    ),
+                  ),
+                ],
               ),
             ],
           ),

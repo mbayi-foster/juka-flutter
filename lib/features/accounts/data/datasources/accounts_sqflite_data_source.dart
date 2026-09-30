@@ -1,4 +1,3 @@
-import 'package:juka/common/constants/app_constants.dart';
 import 'package:sqflite/sqflite.dart';
 
 import 'package:juka/common/enums/account_type.dart';
@@ -8,47 +7,23 @@ import 'package:juka/features/accounts/data/datasources/balance_history_builder.
 import 'package:juka/features/accounts/data/exceptions/accounts_exception.dart';
 import 'package:juka/features/accounts/domain/entities/account.dart';
 import 'package:juka/features/accounts/domain/entities/account_balance_point.dart';
+import 'package:juka/shared/database/app_database.dart';
 
 /// Implémentation SQLite ([sqflite]) de [AccountsLocalDataSource].
 ///
 /// Les comptes créés par l'utilisateur sont conservés d'une session à l'autre
-/// dans une base locale. Le reste du module ne connaît que l'interface
-/// [AccountsLocalDataSource] : la remplacer par des appels HTTP ne toucherait
-/// ni le domaine ni l'interface utilisateur.
+/// dans la base locale partagée (voir [AppDatabase]). Le reste du module ne
+/// connaît que l'interface [AccountsLocalDataSource] : la remplacer par des
+/// appels HTTP ne toucherait ni le domaine ni l'interface utilisateur.
 class AccountsSqfliteDataSource implements AccountsLocalDataSource {
-  static const String _databaseName = AppConstants.dbName;
-  static const int _databaseVersion = 1;
+  const AccountsSqfliteDataSource(this._appDatabase);
+
   static const String _table = 'accounts';
 
-  Future<Database>? _database;
+  final AppDatabase _appDatabase;
 
-  /// Ouvre la base au premier accès, puis réutilise la connexion.
-  Future<Database> get _db => _database ??= _open();
-
-  Future<Database> _open() async {
-    // `package:path` n'est pas une dépendance directe du projet : le chemin est
-    // construit à partir du répertoire fourni par `sqflite`.
-    final path = '${await getDatabasesPath()}/$_databaseName';
-    return openDatabase(path, version: _databaseVersion, onCreate: _onCreate);
-  }
-
-  Future<void> _onCreate(Database db, int version) {
-    return db.execute('''
-      CREATE TABLE $_table (
-        id TEXT PRIMARY KEY,
-        name TEXT NOT NULL,
-        type TEXT NOT NULL,
-        currency TEXT NOT NULL,
-        initial_balance REAL NOT NULL,
-        current_balance REAL NOT NULL,
-        created_at INTEGER NOT NULL,
-        is_archived INTEGER NOT NULL DEFAULT 0,
-        reconciled_balance REAL,
-        reconciled_at INTEGER,
-        note TEXT
-      )
-    ''');
-  }
+  /// Connexion partagée par tous les modules.
+  Future<Database> get _db => _appDatabase.database;
 
   @override
   Future<List<Account>> fetchAccounts() async {

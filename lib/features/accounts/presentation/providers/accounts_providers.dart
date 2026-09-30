@@ -14,6 +14,7 @@ import 'package:juka/features/accounts/domain/usecases/reconcile_account_usecase
 import 'package:juka/features/accounts/domain/usecases/set_account_archived_usecase.dart';
 import 'package:juka/features/accounts/domain/usecases/update_account_usecase.dart';
 import 'package:juka/features/accounts/presentation/state/accounts_state.dart';
+import 'package:juka/shared/database/app_database.dart';
 
 // ---------------------------------------------------------------------------
 // Injection des dépendances (data -> domain)
@@ -25,7 +26,7 @@ import 'package:juka/features/accounts/presentation/state/accounts_state.dart';
 /// dépendent que de [AccountsLocalDataSource]. On injecte ici l'implémentation
 /// SQLite ; les tests la remplacent par l'implémentation en mémoire.
 final accountsLocalDataSourceProvider = Provider<AccountsLocalDataSource>(
-  (ref) => AccountsSqfliteDataSource(),
+  (ref) => AccountsSqfliteDataSource(ref.watch(appDatabaseProvider)),
 );
 
 final accountsRepositoryProvider = Provider<AccountsRepository>(

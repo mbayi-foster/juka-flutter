@@ -13,6 +13,10 @@ enum TransactionCategory {
   subscriptions('Abonnements'),
   salary('Salaire'),
   savings('Épargne'),
+
+  /// Utilisée par les transferts entre comptes : ils ne sont ni un revenu ni
+  /// une dépense, mais doivent tout de même être catégorisés.
+  transfer('Transfert'),
   other('Divers');
 
   const TransactionCategory(this.label);

@@ -1,3 +1,4 @@
+import 'package:juka/common/enums/operation_type.dart';
 import 'package:juka/common/enums/transaction_category.dart';
 import 'package:juka/features/dashboard/domain/entities/budget_progress.dart';
 import 'package:juka/features/dashboard/domain/entities/category_spending.dart';

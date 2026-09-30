@@ -1,7 +1,5 @@
+import 'package:juka/common/enums/operation_type.dart';
 import 'package:juka/common/enums/transaction_category.dart';
-
-/// Sens d'une opération financière.
-enum OperationType { income, expense }
 
 /// Opération récente affichée dans le tableau de bord.
 class RecentOperation {
