@@ -31,4 +31,18 @@ class AppRoutes {
 
   /// Modification d'une opération existante.
   static String operationEdit(String id) => '$operations/$id/modifier';
+
+  // --- Paramètres (sous-routes de l'onglet) ---
+
+  /// Gestion des catégories et de leurs sous-catégories.
+  static const String categories = '$settings/categories';
+
+  /// Budgets mensuels par catégorie.
+  static const String budgets = '$settings/budgets';
+
+  // --- Patrimoine (sous-route du tableau de bord) ---
+
+  /// Patrimoine et progression, ouvert depuis la carte « Patrimoine net » du
+  /// tableau de bord.
+  static const String wealth = '/progression';
 }

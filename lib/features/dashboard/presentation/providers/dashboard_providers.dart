@@ -5,6 +5,7 @@ import 'package:juka/features/dashboard/domain/failures/dashboard_failure.dart';
 import 'package:juka/features/dashboard/domain/repositories/dashboard_repository.dart';
 import 'package:juka/features/dashboard/domain/usecases/get_dashboard_overview_usecase.dart';
 import 'package:juka/features/dashboard/presentation/state/dashboard_state.dart';
+import 'package:juka/features/wealth/presentation/providers/wealth_providers.dart';
 
 // ---------------------------------------------------------------------------
 // Injection des dépendances (data -> domain)
@@ -48,6 +49,15 @@ class DashboardController extends Notifier<DashboardState> {
       status: DashboardStatus.loading,
       overview: state.overview,
     );
+
+    // Photo mensuelle automatique du patrimoine : elle est rafraîchie à chaque
+    // ouverture de l'application (le tableau de bord est l'écran d'accueil).
+    // Un échec ici ne doit pas empêcher le tableau de bord de s'afficher.
+    try {
+      await ref.read(refreshNetWorthSnapshotUseCaseProvider)();
+    } catch (_) {
+      // Ignoré : la photo sera retentée au prochain chargement.
+    }
 
     try {
       final overview = await ref.read(getDashboardOverviewUseCaseProvider)();

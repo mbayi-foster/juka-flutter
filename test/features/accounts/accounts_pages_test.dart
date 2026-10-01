@@ -60,10 +60,16 @@ Widget _wrapRouted(Widget page, ProviderContainer container) {
   );
 }
 
-Future<ProviderContainer> _loadedContainer() async {
+Future<ProviderContainer> _loadedContainer(WidgetTester tester) async {
   final container = _createContainer();
   addTearDown(container.dispose);
-  await container.read(accountsControllerProvider.notifier).load();
+
+  // La source en mémoire simule une latence : `runAsync` laisse le temps réel
+  // s'écouler, faute de quoi l'attente ne se terminerait jamais dans le temps
+  // simulé du test de widget.
+  await tester.runAsync(
+    () => container.read(accountsControllerProvider.notifier).load(),
+  );
   return container;
 }
 
@@ -83,7 +89,8 @@ void main() {
     // Totaux par devise (les devises ne sont jamais additionnées entre elles).
     expect(find.text('Solde total'), findsOneWidget);
     expect(find.text('13 106,60 €'), findsOneWidget);
-    expect(find.text('128 500 F CFA'), findsOneWidget);
+    // La seule devise XOF n'a qu'un compte : le total et le solde coïncident.
+    expect(find.text('128 500 F CFA'), findsNWidgets(2));
 
     // Archivés regroupés à part.
     expect(find.text('Comptes actifs'), findsOneWidget);
@@ -95,7 +102,7 @@ void main() {
     tester,
   ) async {
     _useLargeSurface(tester);
-    final container = await _loadedContainer();
+    final container = await _loadedContainer(tester);
     final initialCount = container
         .read(accountsControllerProvider)
         .accounts
@@ -143,7 +150,7 @@ void main() {
     'Le détail montre le solde, l\'historique et l\'écart de rapprochement',
     (tester) async {
       _useLargeSurface(tester);
-      final container = await _loadedContainer();
+      final container = await _loadedContainer(tester);
       final account = container
           .read(accountsControllerProvider)
           .accounts
@@ -169,15 +176,19 @@ void main() {
 
   testWidgets('L\'archivage retire le compte des totaux', (tester) async {
     _useLargeSurface(tester);
-    final container = await _loadedContainer();
+    final container = await _loadedContainer(tester);
     final account = container
         .read(accountsControllerProvider)
         .accounts
         .firstWhere((item) => item.name == 'Espèces');
 
-    await container
-        .read(accountsControllerProvider.notifier)
-        .setArchived(id: account.id, isArchived: true);
+    // Comme le chargement, l'archivage attend la latence simulée : on laisse
+    // le temps réel s'écouler.
+    await tester.runAsync(
+      () => container
+          .read(accountsControllerProvider.notifier)
+          .setArchived(id: account.id, isArchived: true),
+    );
 
     final state = container.read(accountsControllerProvider);
     expect(state.activeAccounts.any((item) => item.id == account.id), isFalse);

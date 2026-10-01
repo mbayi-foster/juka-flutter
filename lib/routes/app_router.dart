@@ -5,11 +5,14 @@ import 'package:juka/features/accounts/presentation/pages/accounts_page.dart';
 import 'package:juka/features/auth/presentation/pages/forgot_password_page.dart';
 import 'package:juka/features/auth/presentation/pages/login_page.dart';
 import 'package:juka/features/auth/presentation/pages/register_page.dart';
+import 'package:juka/features/categories/presentation/pages/budgets_page.dart';
+import 'package:juka/features/categories/presentation/pages/categories_page.dart';
 import 'package:juka/features/dashboard/presentation/pages/dashboard_page.dart';
 import 'package:juka/features/main/presentation/pages/main_shell.dart';
 import 'package:juka/features/operations/presentation/pages/operation_form_page.dart';
 import 'package:juka/features/operations/presentation/pages/operations_page.dart';
 import 'package:juka/features/settings/presentation/pages/settings_page.dart';
+import 'package:juka/features/wealth/presentation/pages/wealth_page.dart';
 import 'package:juka/routes/app_routes.dart';
 
 /// Table de routage de l'application (go_router).
@@ -33,6 +36,13 @@ abstract final class AppRouter {
                 path: AppRoutes.dashboard,
                 name: 'dashboard',
                 builder: (context, state) => const DashboardPage(),
+                routes: [
+                  GoRoute(
+                    path: 'progression',
+                    name: 'wealth',
+                    builder: (context, state) => const WealthPage(),
+                  ),
+                ],
               ),
             ],
           ),
@@ -99,6 +109,18 @@ abstract final class AppRouter {
                 path: AppRoutes.settings,
                 name: 'settings',
                 builder: (context, state) => const SettingsPage(),
+                routes: [
+                  GoRoute(
+                    path: 'categories',
+                    name: 'categories',
+                    builder: (context, state) => const CategoriesPage(),
+                  ),
+                  GoRoute(
+                    path: 'budgets',
+                    name: 'budgets',
+                    builder: (context, state) => const BudgetsPage(),
+                  ),
+                ],
               ),
             ],
           ),

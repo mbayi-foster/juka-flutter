@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:juka/common/constants/app_colors.dart';
 import 'package:juka/common/constants/size.dart';
 import 'package:juka/features/dashboard/domain/entities/dashboard_overview.dart';
@@ -10,6 +11,7 @@ import 'package:juka/features/dashboard/presentation/widgets/flow_summary_card.d
 import 'package:juka/features/dashboard/presentation/widgets/net_worth_card.dart';
 import 'package:juka/features/dashboard/presentation/widgets/recent_operations_card.dart';
 import 'package:juka/features/dashboard/presentation/widgets/spending_breakdown_card.dart';
+import 'package:juka/routes/app_routes.dart';
 import 'package:juka/shared/widget/error_view.dart';
 import 'package:juka/shared/widget/loading_view.dart';
 import 'package:juka/shared/widget/padding.dart';
@@ -121,6 +123,14 @@ class _DashboardContent extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         NetWorthCard(netWorth: overview.netWorth),
+        Align(
+          alignment: Alignment.centerRight,
+          child: TextButton.icon(
+            onPressed: () => context.push(AppRoutes.wealth),
+            icon: const Icon(Icons.trending_up_rounded, size: 18),
+            label: const Text('Voir ma progression'),
+          ),
+        ),
         AppSize.cardSpacing.ph,
         FlowSummaryCard(flow: overview.flow, period: overview.period),
         AppSize.cardSpacing.ph,
