@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:juka/common/constants/app_colors.dart';
 import 'package:juka/features/dashboard/domain/entities/net_worth.dart';
-import 'package:juka/features/dashboard/presentation/widgets/trend_badge.dart';
+import 'package:juka/shared/widget/trend_badge.dart';
 import 'package:juka/shared/utils/color_extension.dart';
 import 'package:juka/shared/utils/money_formatter.dart';
 import 'package:juka/shared/widget/app_card.dart';

@@ -1,22 +1,29 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:juka/features/dashboard/data/datasources/dashboard_local_data_source.dart';
+import 'package:juka/features/accounts/presentation/providers/accounts_providers.dart';
+import 'package:juka/features/categories/presentation/providers/categories_providers.dart';
 import 'package:juka/features/dashboard/data/repositories/dashboard_repository_impl.dart';
 import 'package:juka/features/dashboard/domain/failures/dashboard_failure.dart';
 import 'package:juka/features/dashboard/domain/repositories/dashboard_repository.dart';
 import 'package:juka/features/dashboard/domain/usecases/get_dashboard_overview_usecase.dart';
 import 'package:juka/features/dashboard/presentation/state/dashboard_state.dart';
+import 'package:juka/features/operations/presentation/providers/operations_providers.dart';
 import 'package:juka/features/wealth/presentation/providers/wealth_providers.dart';
 
 // ---------------------------------------------------------------------------
 // Injection des dépendances (data -> domain)
 // ---------------------------------------------------------------------------
 
-final dashboardLocalDataSourceProvider = Provider<DashboardLocalDataSource>(
-  (ref) => const DashboardLocalDataSourceImpl(),
-);
-
+/// Le tableau de bord agrège les données des autres modules (comptes,
+/// opérations, catégories, patrimoine) : il n'a pas de stockage propre.
+///
+/// Les tests remplacent ce provider pour fournir un jeu de données fixe.
 final dashboardRepositoryProvider = Provider<DashboardRepository>(
-  (ref) => DashboardRepositoryImpl(ref.watch(dashboardLocalDataSourceProvider)),
+  (ref) => DashboardRepositoryImpl(
+    accountsRepository: ref.watch(accountsRepositoryProvider),
+    operationsRepository: ref.watch(operationsRepositoryProvider),
+    categoriesRepository: ref.watch(categoriesRepositoryProvider),
+    wealthRepository: ref.watch(wealthRepositoryProvider),
+  ),
 );
 
 final getDashboardOverviewUseCaseProvider =

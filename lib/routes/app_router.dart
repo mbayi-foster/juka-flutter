@@ -11,6 +11,7 @@ import 'package:juka/features/dashboard/presentation/pages/dashboard_page.dart';
 import 'package:juka/features/main/presentation/pages/main_shell.dart';
 import 'package:juka/features/operations/presentation/pages/operation_form_page.dart';
 import 'package:juka/features/operations/presentation/pages/operations_page.dart';
+import 'package:juka/features/reports/presentation/pages/reports_page.dart';
 import 'package:juka/features/settings/presentation/pages/settings_page.dart';
 import 'package:juka/features/wealth/presentation/pages/wealth_page.dart';
 import 'package:juka/routes/app_routes.dart';
@@ -41,6 +42,11 @@ abstract final class AppRouter {
                     path: 'progression',
                     name: 'wealth',
                     builder: (context, state) => const WealthPage(),
+                  ),
+                  GoRoute(
+                    path: 'rapports',
+                    name: 'reports',
+                    builder: (context, state) => const ReportsPage(),
                   ),
                 ],
               ),

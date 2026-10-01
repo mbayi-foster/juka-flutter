@@ -49,6 +49,24 @@ abstract final class DateFormatter {
   /// `sept.` — mois abrégé, sans le quantième.
   static String shortMonth(DateTime date) => _shortMonths[date.month - 1];
 
+  /// `sept. 2026` — mois abrégé suivi de l'année.
+  static String shortMonthYear(DateTime date) =>
+      '${shortMonth(date)} ${date.year}';
+
+  /// `05/09/2026` — format numérique, utilisé par les exports.
+  static String numeric(DateTime date) {
+    final day = date.day.toString().padLeft(2, '0');
+    final month = date.month.toString().padLeft(2, '0');
+    return '$day/$month/${date.year}';
+  }
+
+  /// `05/09/2026 14:32` — horodatage, utilisé par les exports.
+  static String numericWithTime(DateTime date) {
+    final hour = date.hour.toString().padLeft(2, '0');
+    final minute = date.minute.toString().padLeft(2, '0');
+    return '${numeric(date)} $hour:$minute';
+  }
+
   static DateTime _dayOnly(DateTime date) =>
       DateTime(date.year, date.month, date.day);
 }

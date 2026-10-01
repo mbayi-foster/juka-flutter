@@ -109,6 +109,38 @@ class SettingsPage extends ConsumerWidget {
             ),
           ),
           AppSize.cardSpacing.ph,
+          AppCard(
+            title: 'Analyses et suivi',
+            icon: Icons.query_stats_outlined,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Là où vous comprenez où part votre argent.',
+                  style: TextStyle(
+                    color: AppColors.textMuted,
+                    fontSize: 13,
+                    height: 1.4,
+                  ),
+                ),
+                14.ph,
+                _SettingsLink(
+                  icon: Icons.insights_outlined,
+                  label: 'Rapports et analyses',
+                  description: 'Par catégorie, par compte, export PDF ou Excel',
+                  onTap: () => context.push(AppRoutes.reports),
+                ),
+                const Divider(height: 20),
+                _SettingsLink(
+                  icon: Icons.trending_up_rounded,
+                  label: 'Patrimoine et progression',
+                  description: 'Patrimoine net, épargne et remboursement',
+                  onTap: () => context.push(AppRoutes.wealth),
+                ),
+              ],
+            ),
+          ),
+          AppSize.cardSpacing.ph,
           AppOutlinedButton(
             label: 'Se déconnecter',
             icon: Icons.logout_rounded,

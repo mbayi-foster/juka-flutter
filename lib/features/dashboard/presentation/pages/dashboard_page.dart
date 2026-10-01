@@ -12,6 +12,7 @@ import 'package:juka/features/dashboard/presentation/widgets/net_worth_card.dart
 import 'package:juka/features/dashboard/presentation/widgets/recent_operations_card.dart';
 import 'package:juka/features/dashboard/presentation/widgets/spending_breakdown_card.dart';
 import 'package:juka/routes/app_routes.dart';
+import 'package:juka/shared/widget/app_outlined_button.dart';
 import 'package:juka/shared/widget/error_view.dart';
 import 'package:juka/shared/widget/loading_view.dart';
 import 'package:juka/shared/widget/padding.dart';
@@ -62,7 +63,9 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
             children: [
               const _DashboardHeader(),
               AppSize.sectionSpacing.ph,
-              if (overview != null)
+              if (overview != null && overview.isEmpty)
+                const _NoAccountView()
+              else if (overview != null)
                 _DashboardContent(overview: overview)
               else if (state.isLoading)
                 const LoadingView(
@@ -92,14 +95,30 @@ class _DashboardHeader extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Tableau de bord',
-          style: TextStyle(
-            color: isDark ? AppColors.textWhite : AppColors.textDark,
-            fontSize: 26,
-            fontWeight: FontWeight.w800,
-            height: 1.15,
-          ),
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                'Tableau de bord',
+                style: TextStyle(
+                  color: isDark ? AppColors.textWhite : AppColors.textDark,
+                  fontSize: 26,
+                  fontWeight: FontWeight.w800,
+                  height: 1.15,
+                ),
+              ),
+            ),
+            IconButton(
+              tooltip: 'Rapports et analyses',
+              onPressed: () => context.push(AppRoutes.reports),
+              icon: const Icon(Icons.insights_rounded),
+            ),
+            IconButton(
+              tooltip: 'Patrimoine et progression',
+              onPressed: () => context.push(AppRoutes.wealth),
+              icon: const Icon(Icons.trending_up_rounded),
+            ),
+          ],
         ),
         6.ph,
         const Text(
@@ -107,6 +126,62 @@ class _DashboardHeader extends StatelessWidget {
           style: TextStyle(color: AppColors.textMuted, fontSize: 14.5),
         ),
       ],
+    );
+  }
+}
+
+/// Invitation affichée tant qu'aucun compte n'est suivi.
+class _NoAccountView extends StatelessWidget {
+  const _NoAccountView();
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 32),
+      child: Column(
+        children: [
+          const Icon(
+            Icons.account_balance_wallet_outlined,
+            size: 42,
+            color: AppColors.textMuted,
+          ),
+          16.ph,
+          Text(
+            'Commencez par un compte',
+            style: TextStyle(
+              color: isDark ? AppColors.textWhite : AppColors.textDark,
+              fontSize: 17,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          8.ph,
+          const Text(
+            'Le tableau de bord s\'alimente de vos comptes et de vos '
+            'opérations : créez un compte pour voir vos chiffres réels.',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: AppColors.textMuted,
+              fontSize: 13.5,
+              height: 1.4,
+            ),
+          ),
+          20.ph,
+          AppOutlinedButton(
+            label: 'Créer un compte',
+            icon: Icons.add_rounded,
+            isExpanded: false,
+            onPressed: () => context.go(AppRoutes.accountCreate),
+          ),
+          8.ph,
+          TextButton.icon(
+            onPressed: () => context.push(AppRoutes.wealth),
+            icon: const Icon(Icons.trending_up_rounded, size: 18),
+            label: const Text('Voir le suivi du patrimoine'),
+          ),
+        ],
+      ),
     );
   }
 }

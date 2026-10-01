@@ -4,7 +4,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:juka/features/dashboard/presentation/pages/dashboard_page.dart';
 import 'package:juka/shared/theme/app_theme.dart';
 
+import '../../support/dashboard_fakes.dart';
+
 Widget _wrap(Widget page) => ProviderScope(
+  overrides: dashboardTestOverrides,
   child: MaterialApp(theme: AppTheme.light, home: page),
 );
 

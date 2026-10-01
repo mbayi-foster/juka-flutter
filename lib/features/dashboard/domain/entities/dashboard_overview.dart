@@ -18,10 +18,14 @@ class DashboardOverview {
     required this.budgets,
     required this.recentOperations,
     required this.alerts,
+    this.accountCount = 0,
   });
 
   /// Mois affiché (premier jour du mois).
   final DateTime period;
+
+  /// Nombre de comptes suivis dans la devise affichée.
+  final int accountCount;
 
   final NetWorth netWorth;
   final MonthlyFlow flow;
@@ -33,6 +37,10 @@ class DashboardOverview {
   /// Total des dépenses du mois, déduit de la répartition par catégorie.
   double get totalExpenses =>
       spendingByCategory.fold(0, (sum, item) => sum + item.amount);
+
+  /// `true` tant qu'aucun compte n'est suivi : le tableau de bord invite alors
+  /// à en créer un.
+  bool get isEmpty => accountCount == 0;
 
   /// Répartition triée de la plus grosse dépense à la plus petite.
   List<CategorySpending> get sortedSpendingByCategory =>

@@ -45,4 +45,10 @@ class AppRoutes {
   /// Patrimoine et progression, ouvert depuis la carte « Patrimoine net » du
   /// tableau de bord.
   static const String wealth = '/progression';
+
+  // --- Rapports (sous-route du tableau de bord) ---
+
+  /// Rapports et analyses : dépenses par catégorie, par compte, comparaisons
+  /// et export PDF / Excel.
+  static const String reports = '/rapports';
 }

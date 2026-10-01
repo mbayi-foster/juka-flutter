@@ -9,11 +9,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:juka/shared/app.dart';
 
+import 'support/dashboard_fakes.dart';
+
 void main() {
   testWidgets('L\'application s\'ouvre sur le tableau de bord', (
     WidgetTester tester,
   ) async {
-    await tester.pumpWidget(const ProviderScope(child: MyApp()));
+    await tester.pumpWidget(
+      ProviderScope(overrides: dashboardTestOverrides, child: const MyApp()),
+    );
     await tester.pumpAndSettle();
 
     // En-tête du tableau de bord…
