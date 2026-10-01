@@ -55,6 +55,53 @@ abstract final class ReportsCalculator {
     return comparisonStart.isBefore(trendStart) ? comparisonStart : trendStart;
   }
 
+  /// Devise à analyser.
+  ///
+  /// [requested] est le choix explicite de l'utilisateur : il est respecté
+  /// tant que des comptes actifs l'utilisent. Sans choix, la devise retenue est
+  /// celle qui porte le plus d'opérations sur la période. Une devise sans
+  /// activité — par exemple un compte d'épargne libellé dans une autre devise —
+  /// ne peut donc jamais masquer les chiffres réels. [fallback] prend le relais
+  /// lorsque la période ne contient aucune opération.
+  static AppCurrency resolveCurrency({
+    required List<Operation> operations,
+    required List<Account> accounts,
+    required ReportPeriod period,
+    required AppCurrency fallback,
+    AppCurrency? requested,
+  }) {
+    final available = {
+      for (final account in accounts)
+        if (!account.isArchived) account.currency,
+    };
+
+    if (requested != null && available.contains(requested)) return requested;
+
+    final currencyByAccount = {
+      for (final account in accounts) account.id: account.currency,
+    };
+    final counts = <AppCurrency, int>{};
+
+    for (final operation in operations) {
+      if (!operation.type.countsInStats || !period.contains(operation.date)) {
+        continue;
+      }
+      final currency = currencyByAccount[operation.accountId];
+      if (currency == null || !available.contains(currency)) continue;
+      counts.update(currency, (count) => count + 1, ifAbsent: () => 1);
+    }
+
+    AppCurrency? mostActive;
+    var bestCount = 0;
+    for (final entry in counts.entries) {
+      if (entry.value <= bestCount) continue;
+      mostActive = entry.key;
+      bestCount = entry.value;
+    }
+
+    return mostActive ?? fallback;
+  }
+
   /// Construit le rapport complet.
   ///
   /// [operations] doit couvrir au moins [windowStart] jusqu'à la fin de

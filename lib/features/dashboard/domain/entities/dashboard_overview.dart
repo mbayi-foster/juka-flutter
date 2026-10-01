@@ -1,3 +1,4 @@
+import 'package:juka/common/enums/app_currency.dart';
 import 'package:juka/features/dashboard/domain/entities/budget_progress.dart';
 import 'package:juka/features/dashboard/domain/entities/category_spending.dart';
 import 'package:juka/features/dashboard/domain/entities/dashboard_alert.dart';
@@ -12,6 +13,7 @@ import 'package:juka/features/dashboard/domain/entities/recent_operation.dart';
 class DashboardOverview {
   const DashboardOverview({
     required this.period,
+    required this.currency,
     required this.netWorth,
     required this.flow,
     required this.spendingByCategory,
@@ -23,6 +25,10 @@ class DashboardOverview {
 
   /// Mois affiché (premier jour du mois).
   final DateTime period;
+
+  /// Devise des montants agrégés. Les devises n'étant pas converties, chaque
+  /// montant affiché par l'écran doit être formaté avec celle-ci.
+  final AppCurrency currency;
 
   /// Nombre de comptes suivis dans la devise affichée.
   final int accountCount;

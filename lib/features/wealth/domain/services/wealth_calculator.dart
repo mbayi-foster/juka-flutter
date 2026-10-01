@@ -26,11 +26,37 @@ abstract final class WealthCalculator {
   ///
   /// Les devises n'étant pas converties, c'est celle-ci que l'écran Patrimoine
   /// affiche en premier.
-  static AppCurrency? primaryCurrency(List<Account> accounts) {
-    final weights = <AppCurrency, double>{};
+  ///
+  /// [operationCounts] permet de tenir compte de l'activité : une devise qui
+  /// porte des opérations est préférée au simple poids des soldes. Les écrans
+  /// alimentés par les opérations (tableau de bord, rapports) affichent ainsi
+  /// la devise réellement utilisée, et plus jamais une devise vide parce
+  /// qu'un compte d'épargne pèse plus lourd.
+  static AppCurrency? primaryCurrency(
+    List<Account> accounts, {
+    Map<AppCurrency, int> operationCounts = const {},
+  }) {
+    final active = [
+      for (final account in accounts)
+        if (!account.isArchived) account,
+    ];
+    if (active.isEmpty) return null;
 
-    for (final account in accounts) {
-      if (account.isArchived) continue;
+    final available = {for (final account in active) account.currency};
+
+    // 1. La devise qui porte le plus d'opérations.
+    AppCurrency? mostActive;
+    var bestCount = 0;
+    for (final entry in operationCounts.entries) {
+      if (entry.value <= bestCount || !available.contains(entry.key)) continue;
+      mostActive = entry.key;
+      bestCount = entry.value;
+    }
+    if (mostActive != null) return mostActive;
+
+    // 2. À défaut, celle qui concentre le plus de montants.
+    final weights = <AppCurrency, double>{};
+    for (final account in active) {
       final weight = account.currentBalance.abs();
       weights.update(
         account.currency,
@@ -39,7 +65,6 @@ abstract final class WealthCalculator {
       );
     }
 
-    if (weights.isEmpty) return null;
     final sorted = weights.entries.toList()
       ..sort((a, b) => b.value.compareTo(a.value));
     return sorted.first.key;

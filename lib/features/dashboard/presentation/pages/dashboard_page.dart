@@ -197,7 +197,7 @@ class _DashboardContent extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        NetWorthCard(netWorth: overview.netWorth),
+        NetWorthCard(netWorth: overview.netWorth, currency: overview.currency),
         Align(
           alignment: Alignment.centerRight,
           child: TextButton.icon(
@@ -207,7 +207,11 @@ class _DashboardContent extends StatelessWidget {
           ),
         ),
         AppSize.cardSpacing.ph,
-        FlowSummaryCard(flow: overview.flow, period: overview.period),
+        FlowSummaryCard(
+          flow: overview.flow,
+          period: overview.period,
+          currency: overview.currency,
+        ),
         AppSize.cardSpacing.ph,
         SpendingBreakdownCard(items: overview.sortedSpendingByCategory),
         AppSize.cardSpacing.ph,

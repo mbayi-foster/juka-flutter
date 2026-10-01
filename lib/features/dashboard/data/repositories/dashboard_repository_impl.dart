@@ -47,7 +47,7 @@ class DashboardRepositoryImpl implements DashboardRepository {
   final WealthRepository wealthRepository;
 
   /// Nombre d'opérations récentes affichées par le tableau de bord.
-  static const int recentOperationsCount = 6;
+  static const int recentOperationsCount = 3;
 
   static const String _unexpectedMessage =
       'Impossible de charger votre tableau de bord. Veuillez réessayer.';
@@ -59,17 +59,36 @@ class DashboardRepositoryImpl implements DashboardRepository {
       final period = DateTime(now.year, now.month);
 
       final accounts = await accountsRepository.fetchAccounts();
-      final currency =
-          WealthCalculator.primaryCurrency(accounts) ?? AppCurrency.eur;
-      final currencyAccounts = WealthCalculator.accountsOf(accounts, currency);
-      final accountIds = {for (final account in currencyAccounts) account.id};
-
       final categories = await categoriesRepository.ensureDefaults();
       final budgets = await categoriesRepository.fetchBudgets();
 
-      final operations = await _operationsOfMonth(period, accountIds);
-      final previousOperations = await _operationsOfMonth(
-        DateTime(now.year, now.month - 1),
+      // Une seule lecture des opérations alimente tout l'écran : le choix de
+      // la devise affichée, les flux du mois, le comparatif et la liste des
+      // dernières opérations.
+      final allOperations = await operationsRepository.fetchOperations(
+        const OperationFilter(),
+      );
+
+      final monthOperations = _inMonth(allOperations, period);
+      final currency =
+          WealthCalculator.primaryCurrency(
+            accounts,
+            // La devise affichée est celle réellement utilisée ce mois-ci.
+            // Sans opération ce mois-ci, on retombe sur l'activité générale,
+            // puis sur le poids des soldes.
+            operationCounts: _operationCountsByCurrency(
+              monthOperations.isEmpty ? allOperations : monthOperations,
+              accounts,
+            ),
+          ) ??
+          AppCurrency.eur;
+
+      final currencyAccounts = WealthCalculator.accountsOf(accounts, currency);
+      final accountIds = {for (final account in currencyAccounts) account.id};
+
+      final operations = _onlyAccounts(monthOperations, accountIds);
+      final previousOperations = _onlyAccounts(
+        _inMonth(allOperations, DateTime(now.year, now.month - 1)),
         accountIds,
       );
 
@@ -84,6 +103,7 @@ class DashboardRepositoryImpl implements DashboardRepository {
 
       return DashboardOverview(
         period: period,
+        currency: currency,
         accountCount: currencyAccounts.length,
         netWorth: await _netWorth(accounts, currency, period),
         flow: flow,
@@ -98,8 +118,11 @@ class DashboardRepositoryImpl implements DashboardRepository {
               limit: item.planned,
             ),
         ],
+        // Les dernières opérations ne sont pas filtrées par devise : elles
+        // sont formatées avec celle de leur propre compte.
         recentOperations: _recentOperations(
-          await _recentOperationsOf(accountIds),
+          allOperations.take(recentOperationsCount).toList(),
+          accounts,
         ),
         alerts: _alerts(
           progress: progress,
@@ -165,29 +188,39 @@ class DashboardRepositoryImpl implements DashboardRepository {
   // Opérations
   // ---------------------------------------------------------------------
 
-  /// Opérations du mois concernant les comptes de la devise affichée.
-  Future<List<Operation>> _operationsOfMonth(
-    DateTime month,
-    Set<String> accountIds,
-  ) async {
-    final operations = await operationsRepository.fetchOperations(
-      OperationFilter(
-        from: DateTime(month.year, month.month),
-        to: DateTime(month.year, month.month + 1, 0, 23, 59, 59),
-      ),
-    );
-    return _onlyAccounts(operations, accountIds);
+  /// Opérations d'un mois donné (bornes incluses), tous comptes confondus.
+  List<Operation> _inMonth(List<Operation> operations, DateTime month) {
+    final start = DateTime(month.year, month.month);
+    final end = DateTime(month.year, month.month + 1, 0, 23, 59, 59);
+
+    return [
+      for (final operation in operations)
+        if (!operation.date.isBefore(start) && !operation.date.isAfter(end))
+          operation,
+    ];
   }
 
-  /// Dernières opérations, toutes périodes confondues.
-  Future<List<Operation>> _recentOperationsOf(Set<String> accountIds) async {
-    final operations = await operationsRepository.fetchOperations(
-      const OperationFilter(),
-    );
-    return _onlyAccounts(
-      operations,
-      accountIds,
-    ).take(recentOperationsCount).toList();
+  /// Nombre de revenus / dépenses par devise de compte.
+  ///
+  /// Sert à choisir la devise affichée : c'est celle qui porte le plus
+  /// d'opérations, donc celle dont les chiffres intéressent l'utilisateur.
+  Map<AppCurrency, int> _operationCountsByCurrency(
+    List<Operation> operations,
+    List<Account> accounts,
+  ) {
+    final currencyByAccount = {
+      for (final account in accounts) account.id: account.currency,
+    };
+    final counts = <AppCurrency, int>{};
+
+    for (final operation in operations) {
+      if (!operation.type.countsInStats) continue;
+      final currency = currencyByAccount[operation.accountId];
+      if (currency == null) continue;
+      counts.update(currency, (count) => count + 1, ifAbsent: () => 1);
+    }
+
+    return counts;
   }
 
   /// Les devises ne sont pas converties : on se limite aux comptes de la
@@ -284,17 +317,27 @@ class DashboardRepositoryImpl implements DashboardRepository {
     return current?.id ?? categoryId;
   }
 
-  List<RecentOperation> _recentOperations(List<Operation> operations) => [
-    for (final operation in operations)
-      RecentOperation(
-        id: operation.id,
-        label: operation.label,
-        category: operation.category,
-        type: operation.type,
-        amount: operation.amount,
-        date: operation.date,
-      ),
-  ];
+  List<RecentOperation> _recentOperations(
+    List<Operation> operations,
+    List<Account> accounts,
+  ) {
+    final currencyByAccount = {
+      for (final account in accounts) account.id: account.currency,
+    };
+
+    return [
+      for (final operation in operations)
+        RecentOperation(
+          id: operation.id,
+          label: operation.label,
+          category: operation.category,
+          type: operation.type,
+          amount: operation.amount,
+          date: operation.date,
+          currency: currencyByAccount[operation.accountId] ?? AppCurrency.eur,
+        ),
+    ];
+  }
 
   // ---------------------------------------------------------------------
   // Alertes

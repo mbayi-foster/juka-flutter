@@ -1,3 +1,4 @@
+import 'package:juka/common/enums/app_currency.dart';
 import 'package:juka/common/enums/operation_type.dart';
 import 'package:juka/common/enums/transaction_category.dart';
 import 'package:juka/features/dashboard/domain/entities/budget_progress.dart';
@@ -21,6 +22,7 @@ DashboardOverview demoDashboardOverview({DateTime? now}) {
 
   return DashboardOverview(
     period: DateTime(reference.year, reference.month),
+    currency: AppCurrency.eur,
     accountCount: 6,
     netWorth: const NetWorth(amount: 24850, previousAmount: 24070),
     flow: const MonthlyFlow(income: 3200, expenses: 2145),
@@ -59,6 +61,7 @@ DashboardOverview demoDashboardOverview({DateTime? now}) {
         type: OperationType.expense,
         amount: 96.40,
         date: reference,
+        currency: AppCurrency.eur,
       ),
       RecentOperation(
         id: 'op-2',
@@ -67,6 +70,7 @@ DashboardOverview demoDashboardOverview({DateTime? now}) {
         type: OperationType.income,
         amount: 3200,
         date: reference.subtract(const Duration(days: 2)),
+        currency: AppCurrency.eur,
       ),
     ],
     alerts: const [

@@ -1,4 +1,5 @@
 import 'package:juka/common/enums/app_currency.dart';
+import 'package:juka/features/accounts/domain/entities/account.dart';
 import 'package:juka/features/accounts/domain/repositories/accounts_repository.dart';
 import 'package:juka/features/categories/domain/repositories/categories_repository.dart';
 import 'package:juka/features/operations/domain/entities/operation_filter.dart';
@@ -37,10 +38,6 @@ class ReportsRepositoryImpl implements ReportsRepository {
   }) async {
     try {
       final accounts = await accountsRepository.fetchAccounts();
-      final target =
-          currency ??
-          WealthCalculator.primaryCurrency(accounts) ??
-          AppCurrency.eur;
 
       // Une seule requête couvre la période, son comparatif et la tendance.
       final operations = await operationsRepository.fetchOperations(
@@ -51,6 +48,18 @@ class ReportsRepositoryImpl implements ReportsRepository {
         ),
       );
       final categories = await categoriesRepository.fetchCategories();
+
+      // Les devises ne sont pas converties : le rapport porte donc sur une
+      // seule devise. Sans choix explicite, c'est celle qui porte des
+      // opérations sur la période qui est analysée, afin de ne jamais afficher
+      // un rapport vide alors que des opérations existent.
+      final target = ReportsCalculator.resolveCurrency(
+        operations: operations,
+        accounts: accounts,
+        period: period,
+        fallback: _fallbackCurrency(accounts, accountId),
+        requested: currency,
+      );
 
       return ReportsCalculator.build(
         period: period,
@@ -65,5 +74,17 @@ class ReportsRepositoryImpl implements ReportsRepository {
     } catch (_) {
       throw const ReportsFailure(_unexpectedMessage);
     }
+  }
+
+  /// Devise de repli du rapport : celle du compte observé, sinon celle qui
+  /// concentre le plus de montants.
+  AppCurrency _fallbackCurrency(List<Account> accounts, String? accountId) {
+    if (accountId != null) {
+      for (final account in accounts) {
+        if (account.id == accountId) return account.currency;
+      }
+    }
+
+    return WealthCalculator.primaryCurrency(accounts) ?? AppCurrency.eur;
   }
 }

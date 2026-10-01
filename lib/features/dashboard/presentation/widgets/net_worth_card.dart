@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:juka/common/constants/app_colors.dart';
+import 'package:juka/common/enums/app_currency.dart';
 import 'package:juka/features/dashboard/domain/entities/net_worth.dart';
 import 'package:juka/shared/widget/trend_badge.dart';
 import 'package:juka/shared/utils/color_extension.dart';
@@ -9,9 +10,16 @@ import 'package:juka/shared/widget/padding.dart';
 
 /// Carte principale : patrimoine net actuel et évolution sur un mois.
 class NetWorthCard extends StatelessWidget {
-  const NetWorthCard({super.key, required this.netWorth});
+  const NetWorthCard({
+    super.key,
+    required this.netWorth,
+    required this.currency,
+  });
 
   final NetWorth netWorth;
+
+  /// Devise des montants affichés.
+  final AppCurrency currency;
 
   @override
   Widget build(BuildContext context) {
@@ -44,7 +52,7 @@ class NetWorthCard extends StatelessWidget {
             fit: BoxFit.scaleDown,
             alignment: Alignment.centerLeft,
             child: Text(
-              MoneyFormatter.currency(netWorth.amount),
+              currency.format(netWorth.amount),
               style: TextStyle(
                 color: isDark ? AppColors.textWhite : AppColors.textDark,
                 fontSize: 34,
@@ -66,7 +74,7 @@ class NetWorthCard extends StatelessWidget {
               4.pw,
               Expanded(
                 child: Text(
-                  '${MoneyFormatter.currency(netWorth.change, withSign: true)} '
+                  '${currency.format(netWorth.change, withSign: true)} '
                   'sur un mois',
                   style: TextStyle(
                     color: changeColor,
@@ -81,8 +89,7 @@ class NetWorthCard extends StatelessWidget {
           const Divider(height: 1),
           14.ph,
           Text(
-            'Il y a un mois : '
-            '${MoneyFormatter.currency(netWorth.previousAmount)}',
+            'Il y a un mois : ${currency.format(netWorth.previousAmount)}',
             style: const TextStyle(color: AppColors.textMuted, fontSize: 13),
           ),
         ],

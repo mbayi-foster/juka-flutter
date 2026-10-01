@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:juka/common/constants/app_colors.dart';
 import 'package:juka/common/constants/size.dart';
+import 'package:juka/common/enums/app_currency.dart';
+import 'package:juka/features/accounts/domain/entities/account.dart';
 import 'package:juka/features/accounts/presentation/providers/accounts_providers.dart';
 import 'package:juka/features/reports/domain/entities/expense_report.dart';
 import 'package:juka/features/reports/domain/enums/report_export_format.dart';
@@ -16,6 +18,7 @@ import 'package:juka/features/reports/presentation/widgets/report_filters.dart';
 import 'package:juka/features/reports/presentation/widgets/report_summary_card.dart';
 import 'package:juka/features/reports/presentation/widgets/top_expenses_card.dart';
 import 'package:juka/features/reports/presentation/widgets/trends_card.dart';
+import 'package:juka/features/wealth/domain/services/wealth_calculator.dart';
 import 'package:juka/routes/app_routes.dart';
 import 'package:juka/shared/widget/app_outlined_button.dart';
 import 'package:juka/shared/widget/app_primary_button.dart';
@@ -48,6 +51,19 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
 
   Future<void> _refresh() =>
       ref.read(reportsControllerProvider.notifier).load();
+
+  /// Devises réellement utilisées par les comptes, celle analysée d'abord.
+  List<AppCurrency> _currenciesOf(List<Account> accounts, AppCurrency? active) {
+    final currencies = <AppCurrency>{
+      for (final account in accounts)
+        if (!account.isArchived) account.currency,
+    };
+    final sorted = currencies.toList()
+      ..sort((a, b) => a.code.compareTo(b.code));
+    final primary = active ?? WealthCalculator.primaryCurrency(accounts);
+    if (primary != null && sorted.remove(primary)) sorted.insert(0, primary);
+    return sorted;
+  }
 
   /// Période libre choisie dans le calendrier.
   Future<void> _pickCustomPeriod() async {
@@ -153,10 +169,14 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
                 accounts: accounts,
                 accountId: state.accountId,
                 currency: state.currency,
+                currencies: _currenciesOf(accounts, report?.currency),
                 onPreset: (preset) => ref
                     .read(reportsControllerProvider.notifier)
                     .selectPreset(preset),
                 onCustomRange: _pickCustomPeriod,
+                onCurrency: (currency) => ref
+                    .read(reportsControllerProvider.notifier)
+                    .selectCurrency(currency),
                 onAccount: (accountId) => ref
                     .read(reportsControllerProvider.notifier)
                     .selectAccount(accountId),

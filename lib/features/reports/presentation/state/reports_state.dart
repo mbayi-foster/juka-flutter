@@ -14,6 +14,7 @@ class ReportsState {
     this.report,
     this.period,
     this.accountId,
+    this.selectedCurrency,
     this.errorMessage,
     this.isExporting = false,
     this.exportErrorMessage,
@@ -32,6 +33,10 @@ class ReportsState {
 
   /// Compte observé, `null` pour tous les comptes.
   final String? accountId;
+
+  /// Devise choisie explicitement par l'utilisateur ; `null` laisse
+  /// l'application analyser la devise qui porte le plus d'opérations.
+  final AppCurrency? selectedCurrency;
 
   final String? errorMessage;
 
@@ -59,10 +64,12 @@ class ReportsState {
     ExpenseReport? report,
     ReportPeriod? period,
     String? accountId,
+    AppCurrency? selectedCurrency,
     String? errorMessage,
     bool? isExporting,
     String? exportErrorMessage,
     bool clearExportError = false,
+    bool clearSelectedCurrency = false,
   }) {
     return ReportsState(
       status: status ?? this.status,
@@ -70,6 +77,9 @@ class ReportsState {
       report: report ?? this.report,
       period: period ?? this.period,
       accountId: accountId ?? this.accountId,
+      selectedCurrency: clearSelectedCurrency
+          ? null
+          : (selectedCurrency ?? this.selectedCurrency),
       errorMessage: errorMessage ?? this.errorMessage,
       isExporting: isExporting ?? this.isExporting,
       exportErrorMessage: clearExportError

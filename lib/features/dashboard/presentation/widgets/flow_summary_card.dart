@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:juka/common/constants/app_colors.dart';
 import 'package:juka/common/constants/size.dart';
+import 'package:juka/common/enums/app_currency.dart';
 import 'package:juka/features/dashboard/domain/entities/monthly_flow.dart';
 import 'package:juka/shared/utils/color_extension.dart';
 import 'package:juka/shared/utils/date_formatter.dart';
@@ -10,12 +11,20 @@ import 'package:juka/shared/widget/padding.dart';
 
 /// Revenus, dépenses et épargne du mois affiché.
 class FlowSummaryCard extends StatelessWidget {
-  const FlowSummaryCard({super.key, required this.flow, required this.period});
+  const FlowSummaryCard({
+    super.key,
+    required this.flow,
+    required this.period,
+    required this.currency,
+  });
 
   final MonthlyFlow flow;
 
   /// Mois concerné (premier jour du mois).
   final DateTime period;
+
+  /// Devise des montants affichés.
+  final AppCurrency currency;
 
   @override
   Widget build(BuildContext context) {
@@ -40,6 +49,7 @@ class FlowSummaryCard extends StatelessWidget {
                   child: _FlowStatTile(
                     label: 'Revenus',
                     amount: flow.income,
+                    currency: currency,
                     icon: Icons.south_west_rounded,
                     color: AppColors.success,
                   ),
@@ -49,6 +59,7 @@ class FlowSummaryCard extends StatelessWidget {
                   child: _FlowStatTile(
                     label: 'Dépenses',
                     amount: flow.expenses,
+                    currency: currency,
                     icon: Icons.north_east_rounded,
                     color: AppColors.error,
                   ),
@@ -65,6 +76,7 @@ class FlowSummaryCard extends StatelessWidget {
                   child: _FlowStatTile(
                     label: 'Épargne',
                     amount: flow.savings,
+                    currency: currency,
                     icon: Icons.savings_rounded,
                     color: AppColors.primary,
                   ),
@@ -85,12 +97,14 @@ class _FlowStatTile extends StatelessWidget {
   const _FlowStatTile({
     required this.label,
     required this.amount,
+    required this.currency,
     required this.icon,
     required this.color,
   });
 
   final String label;
   final double amount;
+  final AppCurrency currency;
   final IconData icon;
   final Color color;
 
@@ -114,7 +128,7 @@ class _FlowStatTile extends StatelessWidget {
           color: color.forBrightness(theme.brightness),
         ),
       ),
-      value: MoneyFormatter.currency(amount),
+      value: currency.format(amount),
     );
   }
 }

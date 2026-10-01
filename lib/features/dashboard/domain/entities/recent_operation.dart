@@ -1,3 +1,4 @@
+import 'package:juka/common/enums/app_currency.dart';
 import 'package:juka/common/enums/operation_type.dart';
 import 'package:juka/common/enums/transaction_category.dart';
 
@@ -10,6 +11,7 @@ class RecentOperation {
     required this.type,
     required this.amount,
     required this.date,
+    required this.currency,
   });
 
   final String id;
@@ -24,6 +26,10 @@ class RecentOperation {
   final double amount;
 
   final DateTime date;
+
+  /// Devise du compte de l'opération : les dernières opérations peuvent
+  /// provenir de comptes de devises différentes.
+  final AppCurrency currency;
 
   bool get isIncome => type == OperationType.income;
 

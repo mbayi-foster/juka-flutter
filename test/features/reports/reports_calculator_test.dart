@@ -222,4 +222,78 @@ void main() {
       expect(report.period.previous.end, DateTime(2026, 8, 31, 23, 59, 59));
     });
   });
+
+  group('ReportsCalculator.resolveCurrency', () {
+    Account account(String id, AppCurrency currency, {double balance = 0}) =>
+        Account(
+          id: id,
+          name: id,
+          type: AccountType.bank,
+          currency: currency,
+          initialBalance: balance,
+          currentBalance: balance,
+          createdAt: DateTime(2026),
+        );
+
+    test('sans choix, retient la devise qui porte les opérations', () {
+      final operations = [
+        _operation(
+          id: 'courses',
+          type: OperationType.expense,
+          amount: 50,
+          category: TransactionCategory.food,
+          date: DateTime(2026, 9, 10),
+          accountId: 'usd',
+        ),
+      ];
+
+      final currency = ReportsCalculator.resolveCurrency(
+        operations: operations,
+        // Le compte CDF pèse pourtant beaucoup plus lourd.
+        accounts: [
+          account('cdf', AppCurrency.cdf, balance: 2000000),
+          account('usd', AppCurrency.usd, balance: 40),
+        ],
+        period: _september,
+        fallback: AppCurrency.cdf,
+      );
+
+      expect(currency, AppCurrency.usd);
+    });
+
+    test('respecte la devise choisie par l\'utilisateur', () {
+      final currency = ReportsCalculator.resolveCurrency(
+        operations: const [],
+        accounts: [account('usd', AppCurrency.usd)],
+        period: _september,
+        fallback: AppCurrency.cdf,
+        requested: AppCurrency.usd,
+      );
+
+      expect(currency, AppCurrency.usd);
+    });
+
+    test('ignore une opération hors période et retombe sur le repli', () {
+      final currency = ReportsCalculator.resolveCurrency(
+        operations: [
+          _operation(
+            id: 'ancienne',
+            type: OperationType.expense,
+            amount: 50,
+            category: TransactionCategory.food,
+            date: DateTime(2026, 7, 10),
+            accountId: 'usd',
+          ),
+        ],
+        accounts: [
+          account('cdf', AppCurrency.cdf, balance: 100),
+          account('usd', AppCurrency.usd, balance: 10),
+        ],
+        period: _september,
+        fallback: AppCurrency.cdf,
+      );
+
+      expect(currency, AppCurrency.cdf);
+    });
+  });
 }

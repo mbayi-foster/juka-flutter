@@ -9,10 +9,10 @@ import 'package:juka/features/reports/domain/enums/report_period_preset.dart';
 import 'package:juka/shared/widget/choice_chip_tile.dart';
 import 'package:juka/shared/widget/padding.dart';
 
-/// Filtres du rapport : période analysée et compte observé.
+/// Filtres du rapport : période analysée, devise et compte observé.
 ///
-/// Les deux sélections relancent le calcul ; elles sont donc remontées au
-/// contrôleur par [onPreset], [onCustomRange] et [onAccount].
+/// Les sélections relancent le calcul ; elles sont donc remontées au
+/// contrôleur par [onPreset], [onCustomRange], [onCurrency] et [onAccount].
 class ReportFilters extends StatelessWidget {
   const ReportFilters({
     super.key,
@@ -21,8 +21,10 @@ class ReportFilters extends StatelessWidget {
     required this.accounts,
     required this.accountId,
     required this.currency,
+    required this.currencies,
     required this.onPreset,
     required this.onCustomRange,
+    required this.onCurrency,
     required this.onAccount,
   });
 
@@ -42,10 +44,17 @@ class ReportFilters extends StatelessWidget {
   /// puisque les montants ne sont jamais additionnés entre devises.
   final AppCurrency? currency;
 
+  /// Devises réellement utilisées par les comptes, la devise analysée d'abord.
+  /// Le sélecteur est masqué tant qu'il n'y en a qu'une.
+  final List<AppCurrency> currencies;
+
   final ValueChanged<ReportPeriodPreset> onPreset;
 
   /// Ouvre le calendrier pour choisir une période libre.
   final VoidCallback onCustomRange;
+
+  /// Analyse une autre devise.
+  final ValueChanged<AppCurrency> onCurrency;
 
   final ValueChanged<String?> onAccount;
 
@@ -78,6 +87,22 @@ class ReportFilters extends StatelessWidget {
               ),
           ],
         ),
+        if (currencies.length > 1) ...[
+          AppSize.fieldSpacing.ph,
+          const _FilterLabel('Devise'),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              for (final item in currencies)
+                ChoiceChipTile(
+                  label: item.displayName,
+                  isSelected: (currency ?? currencies.first) == item,
+                  onTap: () => onCurrency(item),
+                ),
+            ],
+          ),
+        ],
         if (selectable.isNotEmpty) ...[
           AppSize.fieldSpacing.ph,
           const _FilterLabel('Compte'),

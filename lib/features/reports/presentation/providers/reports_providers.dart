@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:juka/common/enums/app_currency.dart';
 import 'package:juka/features/accounts/presentation/providers/accounts_providers.dart';
 import 'package:juka/features/categories/presentation/providers/categories_providers.dart';
 import 'package:juka/features/operations/presentation/providers/operations_providers.dart';
@@ -59,12 +60,15 @@ class ReportsController extends Notifier<ReportsState> {
   /// [period] est la période à analyser (nécessaire pour une période
   /// personnalisée) ; à défaut elle est recalculée depuis [preset]. Pour le
   /// compte, `accountId: null` ne change rien : c'est `clearAccount` qui
-  /// revient à « tous les comptes ».
+  /// revient à « tous les comptes ». [currency] force la devise analysée ;
+  /// `clearCurrency` revient à « la devise la plus active ».
   Future<void> load({
     ReportPeriodPreset? preset,
     ReportPeriod? period,
     String? accountId,
     bool clearAccount = false,
+    AppCurrency? currency,
+    bool clearCurrency = false,
   }) async {
     final nextPreset = preset ?? state.preset;
     final nextPeriod =
@@ -77,6 +81,9 @@ class ReportsController extends Notifier<ReportsState> {
       preset: nextPreset,
       period: nextPeriod,
       accountId: clearAccount ? null : (accountId ?? state.accountId),
+      selectedCurrency: clearCurrency
+          ? null
+          : (currency ?? state.selectedCurrency),
       // Le rapport précédent reste affiché pendant le recalcul.
       report: state.report,
     );
@@ -101,6 +108,13 @@ class ReportsController extends Notifier<ReportsState> {
   /// Analyse un seul compte (`null` = tous les comptes).
   Future<void> selectAccount(String? accountId) =>
       load(accountId: accountId, clearAccount: accountId == null);
+
+  /// Change la devise analysée.
+  ///
+  /// Le compte observé est réinitialisé : les comptes d'une autre devise
+  /// seraient exclus du nouveau périmètre et le rapport paraîtrait vide.
+  Future<void> selectCurrency(AppCurrency currency) =>
+      load(currency: currency, clearAccount: true);
 
   /// Exporte le rapport affiché.
   ///
@@ -136,6 +150,7 @@ class ReportsController extends Notifier<ReportsState> {
       final report = await ref.read(getExpenseReportUseCaseProvider)(
         period: period,
         accountId: state.accountId,
+        currency: state.selectedCurrency,
       );
 
       state = ReportsState(
@@ -143,6 +158,7 @@ class ReportsController extends Notifier<ReportsState> {
         preset: state.preset,
         period: period,
         accountId: state.accountId,
+        selectedCurrency: state.selectedCurrency,
         report: report,
       );
     } on ReportsFailure catch (failure) {
@@ -151,6 +167,7 @@ class ReportsController extends Notifier<ReportsState> {
         preset: state.preset,
         period: period,
         accountId: state.accountId,
+        selectedCurrency: state.selectedCurrency,
         report: state.report,
         errorMessage: failure.message,
       );

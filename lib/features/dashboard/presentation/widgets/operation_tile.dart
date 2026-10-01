@@ -69,7 +69,7 @@ class OperationTile extends StatelessWidget {
         ),
         10.pw,
         Text(
-          MoneyFormatter.currency(
+          operation.currency.format(
             operation.signedAmount,
             withSign: operation.isIncome,
           ),
