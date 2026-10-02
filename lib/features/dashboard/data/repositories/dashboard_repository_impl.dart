@@ -6,6 +6,8 @@ import 'package:juka/features/categories/domain/entities/budget_progress.dart';
 import 'package:juka/features/categories/domain/entities/category.dart';
 import 'package:juka/features/categories/domain/repositories/categories_repository.dart';
 import 'package:juka/features/categories/domain/services/budget_progress_calculator.dart';
+import 'package:juka/features/currencies/domain/services/currency_conversion.dart';
+import 'package:juka/features/currencies/domain/services/currency_converter.dart';
 import 'package:juka/features/dashboard/domain/entities/budget_progress.dart'
     as dashboard;
 import 'package:juka/features/dashboard/domain/entities/category_spending.dart';
@@ -39,12 +41,19 @@ class DashboardRepositoryImpl implements DashboardRepository {
     required this.operationsRepository,
     required this.categoriesRepository,
     required this.wealthRepository,
+    this.converter,
   });
 
   final AccountsRepository accountsRepository;
   final OperationsRepository operationsRepository;
   final CategoriesRepository categoriesRepository;
   final WealthRepository wealthRepository;
+
+  /// Convertisseur vers la devise de référence.
+  ///
+  /// `null` tant que l'utilisateur n'en a pas choisi : l'écran affiche alors
+  /// une seule devise à la fois, celle qu'il utilise le plus.
+  final CurrencyConverter? converter;
 
   /// Nombre d'opérations récentes affichées par le tableau de bord.
   static const int recentOperationsCount = 3;
@@ -62,15 +71,28 @@ class DashboardRepositoryImpl implements DashboardRepository {
       final categories = await categoriesRepository.ensureDefaults();
       final budgets = await categoriesRepository.fetchBudgets();
 
-      // Une seule lecture des opérations alimente tout l'écran : le choix de
-      // la devise affichée, les flux du mois, le comparatif et la liste des
-      // dernières opérations.
+      // Une seule lecture des opérations alimente tout l'écran.
       final allOperations = await operationsRepository.fetchOperations(
         const OperationFilter(),
       );
 
-      final monthOperations = _inMonth(allOperations, period);
+      // Sans devise de référence, l'écran se limite à la devise la plus
+      // utilisée ; avec, tout est ramené dans la devise de référence.
+      final activeConverter = converter;
+      final viewAccounts = activeConverter == null
+          ? accounts
+          : CurrencyConversion.accounts(accounts, activeConverter, period);
+      final viewOperations = activeConverter == null
+          ? allOperations
+          : CurrencyConversion.operations(
+              allOperations,
+              activeConverter,
+              accounts,
+            );
+
+      final monthOperations = _inMonth(viewOperations, period);
       final currency =
+          activeConverter?.reference ??
           WealthCalculator.primaryCurrency(
             accounts,
             // La devise affichée est celle réellement utilisée ce mois-ci.
@@ -83,12 +105,14 @@ class DashboardRepositoryImpl implements DashboardRepository {
           ) ??
           AppCurrency.eur;
 
-      final currencyAccounts = WealthCalculator.accountsOf(accounts, currency);
-      final accountIds = {for (final account in currencyAccounts) account.id};
+      // Après conversion, tous les comptes portent la devise de référence :
+      // le périmètre couvre donc toutes les devises convertibles.
+      final scopeAccounts = WealthCalculator.accountsOf(viewAccounts, currency);
+      final accountIds = {for (final account in scopeAccounts) account.id};
 
       final operations = _onlyAccounts(monthOperations, accountIds);
       final previousOperations = _onlyAccounts(
-        _inMonth(allOperations, DateTime(now.year, now.month - 1)),
+        _inMonth(viewOperations, DateTime(now.year, now.month - 1)),
         accountIds,
       );
 
@@ -104,8 +128,8 @@ class DashboardRepositoryImpl implements DashboardRepository {
       return DashboardOverview(
         period: period,
         currency: currency,
-        accountCount: currencyAccounts.length,
-        netWorth: await _netWorth(accounts, currency, period),
+        accountCount: scopeAccounts.length,
+        netWorth: await _netWorth(viewAccounts, currency, period),
         flow: flow,
         spendingByCategory: _spendingByCategory(spent, categories),
         budgets: [
@@ -126,7 +150,7 @@ class DashboardRepositoryImpl implements DashboardRepository {
         ),
         alerts: _alerts(
           progress: progress,
-          accounts: currencyAccounts,
+          accounts: scopeAccounts,
           flow: flow,
           currency: currency,
         ),

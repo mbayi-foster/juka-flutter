@@ -2,16 +2,17 @@ import 'package:go_router/go_router.dart';
 import 'package:juka/features/accounts/presentation/pages/account_detail_page.dart';
 import 'package:juka/features/accounts/presentation/pages/account_form_page.dart';
 import 'package:juka/features/accounts/presentation/pages/accounts_page.dart';
-import 'package:juka/features/auth/presentation/pages/forgot_password_page.dart';
-import 'package:juka/features/auth/presentation/pages/login_page.dart';
-import 'package:juka/features/auth/presentation/pages/register_page.dart';
 import 'package:juka/features/categories/presentation/pages/budgets_page.dart';
 import 'package:juka/features/categories/presentation/pages/categories_page.dart';
+import 'package:juka/features/currencies/presentation/pages/currencies_page.dart';
 import 'package:juka/features/dashboard/presentation/pages/dashboard_page.dart';
 import 'package:juka/features/main/presentation/pages/main_shell.dart';
 import 'package:juka/features/operations/presentation/pages/operation_form_page.dart';
 import 'package:juka/features/operations/presentation/pages/operations_page.dart';
 import 'package:juka/features/reports/presentation/pages/reports_page.dart';
+import 'package:juka/features/settings/presentation/pages/backup_page.dart';
+import 'package:juka/features/settings/presentation/pages/profile_page.dart';
+import 'package:juka/features/settings/presentation/pages/reminders_page.dart';
 import 'package:juka/features/settings/presentation/pages/settings_page.dart';
 import 'package:juka/features/wealth/presentation/pages/wealth_page.dart';
 import 'package:juka/routes/app_routes.dart';
@@ -19,9 +20,9 @@ import 'package:juka/routes/app_routes.dart';
 /// Table de routage de l'application (go_router).
 ///
 /// Les onglets principaux sont regroupés dans une `StatefulShellRoute` : la
-/// barre de navigation et l'état de chaque onglet sont ainsi conservés. Les
-/// écrans d'authentification restent hors de la coquille, donc sans barre de
-/// navigation.
+/// barre de navigation et l'état de chaque onglet sont ainsi conservés. Tout
+/// est local : il n'y a plus d'écran de connexion réseau (le nom et le code PIN
+/// sont vérifiés par la porte d'accès de `MyApp`).
 abstract final class AppRouter {
   static final GoRouter router = GoRouter(
     // L'application s'ouvre directement sur le tableau de bord.
@@ -126,26 +127,31 @@ abstract final class AppRouter {
                     name: 'budgets',
                     builder: (context, state) => const BudgetsPage(),
                   ),
+                  GoRoute(
+                    path: 'profil',
+                    name: 'profile',
+                    builder: (context, state) => const ProfilePage(),
+                  ),
+                  GoRoute(
+                    path: 'rappels',
+                    name: 'reminders',
+                    builder: (context, state) => const RemindersPage(),
+                  ),
+                  GoRoute(
+                    path: 'devises',
+                    name: 'currencies',
+                    builder: (context, state) => const CurrenciesPage(),
+                  ),
+                  GoRoute(
+                    path: 'sauvegarde',
+                    name: 'backup',
+                    builder: (context, state) => const BackupPage(),
+                  ),
                 ],
               ),
             ],
           ),
         ],
-      ),
-      GoRoute(
-        path: AppRoutes.login,
-        name: 'login',
-        builder: (context, state) => const LoginPage(),
-      ),
-      GoRoute(
-        path: AppRoutes.register,
-        name: 'register',
-        builder: (context, state) => const RegisterPage(),
-      ),
-      GoRoute(
-        path: AppRoutes.forgotPassword,
-        name: 'forgotPassword',
-        builder: (context, state) => const ForgotPasswordPage(),
       ),
     ],
   );

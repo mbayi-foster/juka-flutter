@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:juka/features/accounts/presentation/providers/accounts_providers.dart';
 import 'package:juka/features/categories/presentation/providers/categories_providers.dart';
+import 'package:juka/features/currencies/presentation/providers/currencies_providers.dart';
 import 'package:juka/features/dashboard/data/repositories/dashboard_repository_impl.dart';
 import 'package:juka/features/dashboard/domain/failures/dashboard_failure.dart';
 import 'package:juka/features/dashboard/domain/repositories/dashboard_repository.dart';
@@ -23,6 +24,8 @@ final dashboardRepositoryProvider = Provider<DashboardRepository>(
     operationsRepository: ref.watch(operationsRepositoryProvider),
     categoriesRepository: ref.watch(categoriesRepositoryProvider),
     wealthRepository: ref.watch(wealthRepositoryProvider),
+    // Sans devise de référence, `null` : l'écran reste alors sur une devise.
+    converter: ref.watch(currencyConverterProvider),
   ),
 );
 
@@ -47,7 +50,14 @@ class DashboardController extends Notifier<DashboardState> {
       'Une erreur inattendue est survenue. Veuillez réessayer.';
 
   @override
-  DashboardState build() => const DashboardState();
+  DashboardState build() {
+    // La devise de référence et ses taux arrivent après le premier rendu : on
+    // recharge alors le tableau de bord pour que les montants soient convertis.
+    ref.listen(currencyConverterProvider, (previous, next) {
+      if (previous != next) load();
+    });
+    return const DashboardState();
+  }
 
   /// (Re)charge l'agrégat ; les données déjà affichées restent visibles pendant
   /// le rafraîchissement.

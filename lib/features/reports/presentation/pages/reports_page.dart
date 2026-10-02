@@ -6,6 +6,7 @@ import 'package:juka/common/constants/size.dart';
 import 'package:juka/common/enums/app_currency.dart';
 import 'package:juka/features/accounts/domain/entities/account.dart';
 import 'package:juka/features/accounts/presentation/providers/accounts_providers.dart';
+import 'package:juka/features/currencies/presentation/providers/currencies_providers.dart';
 import 'package:juka/features/reports/domain/entities/expense_report.dart';
 import 'package:juka/features/reports/domain/enums/report_export_format.dart';
 import 'package:juka/features/reports/presentation/providers/reports_providers.dart';
@@ -169,7 +170,11 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
                 accounts: accounts,
                 accountId: state.accountId,
                 currency: state.currency,
-                currencies: _currenciesOf(accounts, report?.currency),
+                // Avec une devise de référence, les montants sont déjà
+                // convertis : choisir une devise n'a plus de sens.
+                currencies: ref.watch(currencyConverterProvider) == null
+                    ? _currenciesOf(accounts, report?.currency)
+                    : const [],
                 onPreset: (preset) => ref
                     .read(reportsControllerProvider.notifier)
                     .selectPreset(preset),

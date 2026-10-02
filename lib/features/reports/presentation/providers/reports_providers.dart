@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:juka/common/enums/app_currency.dart';
 import 'package:juka/features/accounts/presentation/providers/accounts_providers.dart';
 import 'package:juka/features/categories/presentation/providers/categories_providers.dart';
+import 'package:juka/features/currencies/presentation/providers/currencies_providers.dart';
 import 'package:juka/features/operations/presentation/providers/operations_providers.dart';
 import 'package:juka/features/reports/data/exporters/report_file_exporter.dart';
 import 'package:juka/features/reports/data/repositories/reports_repository_impl.dart';
@@ -27,6 +28,8 @@ final reportsRepositoryProvider = Provider<ReportsRepository>(
     accountsRepository: ref.watch(accountsRepositoryProvider),
     operationsRepository: ref.watch(operationsRepositoryProvider),
     categoriesRepository: ref.watch(categoriesRepositoryProvider),
+    // Sans devise de référence, `null` : le rapport reste sur une devise.
+    converter: ref.watch(currencyConverterProvider),
   ),
 );
 
@@ -53,7 +56,14 @@ final reportsControllerProvider =
 
 class ReportsController extends Notifier<ReportsState> {
   @override
-  ReportsState build() => const ReportsState();
+  ReportsState build() {
+    // La devise de référence et ses taux arrivent après le premier rendu : on
+    // recalcule alors le rapport avec les montants convertis.
+    ref.listen(currencyConverterProvider, (previous, next) {
+      if (previous != next) load();
+    });
+    return const ReportsState();
+  }
 
   /// Charge le rapport en conservant les filtres déjà choisis.
   ///

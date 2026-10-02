@@ -20,7 +20,9 @@ class AppDatabase {
   /// v3 : ajout de `categories`, `budgets` et `app_settings` (catégories
   ///      personnalisables, budgets mensuels, préférences d'affichage).
   /// v4 : ajout de `net_worth_snapshots` (photos mensuelles du patrimoine).
-  static const int schemaVersion = 4;
+  /// v5 : ajout de `currencies` et `exchange_rates` (devises suivies et taux
+  ///      de change mensuels vers la devise de référence).
+  static const int schemaVersion = 5;
 
   Future<Database>? _database;
 
@@ -150,6 +152,21 @@ class AppDatabase {
       liabilities REAL NOT NULL,
       recorded_at INTEGER NOT NULL,
       PRIMARY KEY (month, currency)
+    )
+    ''',
+    '''
+    CREATE TABLE IF NOT EXISTS currencies (
+      code TEXT PRIMARY KEY,
+      created_at INTEGER NOT NULL
+    )
+    ''',
+    '''
+    CREATE TABLE IF NOT EXISTS exchange_rates (
+      currency_code TEXT NOT NULL,
+      month INTEGER NOT NULL,
+      rate REAL NOT NULL,
+      updated_at INTEGER NOT NULL,
+      PRIMARY KEY (currency_code, month)
     )
     ''',
   ];

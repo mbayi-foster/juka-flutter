@@ -2,6 +2,8 @@ import 'package:juka/common/enums/app_currency.dart';
 import 'package:juka/features/accounts/domain/entities/account.dart';
 import 'package:juka/features/accounts/domain/repositories/accounts_repository.dart';
 import 'package:juka/features/categories/domain/repositories/categories_repository.dart';
+import 'package:juka/features/currencies/domain/services/currency_conversion.dart';
+import 'package:juka/features/currencies/domain/services/currency_converter.dart';
 import 'package:juka/features/operations/domain/entities/operation_filter.dart';
 import 'package:juka/features/operations/domain/repositories/operations_repository.dart';
 import 'package:juka/features/reports/domain/entities/expense_report.dart';
@@ -21,11 +23,18 @@ class ReportsRepositoryImpl implements ReportsRepository {
     required this.accountsRepository,
     required this.operationsRepository,
     required this.categoriesRepository,
+    this.converter,
   });
 
   final AccountsRepository accountsRepository;
   final OperationsRepository operationsRepository;
   final CategoriesRepository categoriesRepository;
+
+  /// Convertisseur vers la devise de référence.
+  ///
+  /// `null` tant que l'utilisateur n'en a pas choisi : le rapport porte alors
+  /// sur une seule devise à la fois.
+  final CurrencyConverter? converter;
 
   static const String _unexpectedMessage =
       'Impossible de construire le rapport. Veuillez réessayer.';
@@ -49,10 +58,34 @@ class ReportsRepositoryImpl implements ReportsRepository {
       );
       final categories = await categoriesRepository.fetchCategories();
 
-      // Les devises ne sont pas converties : le rapport porte donc sur une
+      final activeConverter = converter;
+
+      // Avec une devise de référence, les comptes et les opérations sont
+      // ramenés dans cette devise : le rapport couvre alors toutes les devises
+      // convertibles d'un coup.
+      if (activeConverter != null) {
+        return ReportsCalculator.build(
+          period: period,
+          operations: CurrencyConversion.operations(
+            operations,
+            activeConverter,
+            accounts,
+          ),
+          categories: categories,
+          accounts: CurrencyConversion.accounts(
+            accounts,
+            activeConverter,
+            period.end,
+          ),
+          currency: activeConverter.reference,
+          accountId: accountId,
+        );
+      }
+
+      // Sinon les devises ne sont pas converties : le rapport porte sur une
       // seule devise. Sans choix explicite, c'est celle qui porte des
-      // opérations sur la période qui est analysée, afin de ne jamais afficher
-      // un rapport vide alors que des opérations existent.
+      // opérations sur la période, afin de ne jamais afficher un rapport vide
+      // alors que des opérations existent.
       final target = ReportsCalculator.resolveCurrency(
         operations: operations,
         accounts: accounts,

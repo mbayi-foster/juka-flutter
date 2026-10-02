@@ -10,13 +10,17 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:juka/shared/app.dart';
 
 import 'support/dashboard_fakes.dart';
+import 'support/settings_fakes.dart';
 
 void main() {
   testWidgets('L\'application s\'ouvre sur le tableau de bord', (
     WidgetTester tester,
   ) async {
     await tester.pumpWidget(
-      ProviderScope(overrides: dashboardTestOverrides, child: const MyApp()),
+      ProviderScope(
+        overrides: [...settingsTestOverrides, ...dashboardTestOverrides],
+        child: const MyApp(),
+      ),
     );
     await tester.pumpAndSettle();
 

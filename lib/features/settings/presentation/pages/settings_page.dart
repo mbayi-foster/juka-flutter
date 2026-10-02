@@ -3,23 +3,26 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:juka/common/constants/app_colors.dart';
 import 'package:juka/common/constants/size.dart';
-import 'package:juka/features/auth/presentation/providers/auth_providers.dart';
+import 'package:juka/common/enums/app_date_format.dart';
+import 'package:juka/common/enums/app_language.dart';
 import 'package:juka/features/settings/domain/enums/app_theme_mode.dart';
 import 'package:juka/features/settings/presentation/providers/settings_providers.dart';
 import 'package:juka/routes/app_routes.dart';
+import 'package:juka/shared/utils/date_formatter.dart';
 import 'package:juka/shared/widget/app_card.dart';
-import 'package:juka/shared/widget/app_outlined_button.dart';
 import 'package:juka/shared/widget/choice_chip_tile.dart';
 import 'package:juka/shared/widget/padding.dart';
 
-/// Onglet Paramètres : compte de l'utilisateur et préférences.
+/// Onglet Paramètres : profil local, préférences et accès aux réglages.
 class SettingsPage extends ConsumerWidget {
   const SettingsPage({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final user = ref.watch(authControllerProvider).user;
-    final themeMode = ref.watch(settingsControllerProvider);
+    final settings = ref.watch(settingsControllerProvider);
+    final preferences = settings.preferences;
+    final profile = settings.profile;
+    final controller = ref.read(settingsControllerProvider.notifier);
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
@@ -28,13 +31,22 @@ class SettingsPage extends ConsumerWidget {
         padding: const EdgeInsets.all(AppSize.pagePadding),
         children: [
           AppCard(
-            title: 'Mon compte',
+            title: 'Mon profil',
             icon: Icons.person_outline_rounded,
+            trailing: TextButton(
+              onPressed: () => context.push(AppRoutes.profile),
+              style: TextButton.styleFrom(
+                padding: EdgeInsets.zero,
+                minimumSize: Size.zero,
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+              child: const Text('Modifier'),
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  user?.displayName ?? 'Utilisateur',
+                  profile.name.isEmpty ? 'Utilisateur' : profile.name,
                   style: TextStyle(
                     color: isDark ? AppColors.textWhite : AppColors.textDark,
                     fontSize: 16,
@@ -42,11 +54,89 @@ class SettingsPage extends ConsumerWidget {
                   ),
                 ),
                 4.ph,
+                Row(
+                  children: [
+                    Icon(
+                      profile.hasPin
+                          ? Icons.lock_rounded
+                          : Icons.lock_open_rounded,
+                      size: 15,
+                      color: AppColors.textMuted,
+                    ),
+                    6.pw,
+                    Text(
+                      profile.hasPin
+                          ? 'Protégé par un code PIN'
+                          : 'Sans code PIN',
+                      style: const TextStyle(
+                        color: AppColors.textMuted,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          AppSize.cardSpacing.ph,
+          AppCard(
+            title: 'Apparence et langue',
+            icon: Icons.palette_outlined,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const _SettingsLabel('Thème'),
+                Wrap(
+                  spacing: 10,
+                  runSpacing: 10,
+                  children: [
+                    for (final mode in AppThemeMode.values)
+                      ChoiceChipTile(
+                        label: mode.label,
+                        icon: switch (mode) {
+                          AppThemeMode.system => Icons.brightness_auto_rounded,
+                          AppThemeMode.light => Icons.light_mode_rounded,
+                          AppThemeMode.dark => Icons.dark_mode_rounded,
+                        },
+                        isSelected: preferences.themeMode == mode,
+                        onTap: () => controller.setThemeMode(mode),
+                      ),
+                  ],
+                ),
+                AppSize.fieldSpacing.ph,
+                const _SettingsLabel('Langue'),
+                Wrap(
+                  spacing: 10,
+                  runSpacing: 10,
+                  children: [
+                    for (final language in AppLanguage.values)
+                      ChoiceChipTile(
+                        label: language.label,
+                        isSelected: preferences.language == language,
+                        onTap: () => controller.setLanguage(language),
+                      ),
+                  ],
+                ),
+                AppSize.fieldSpacing.ph,
+                const _SettingsLabel('Format des dates'),
+                Wrap(
+                  spacing: 10,
+                  runSpacing: 10,
+                  children: [
+                    for (final format in AppDateFormat.values)
+                      ChoiceChipTile(
+                        label: format.example,
+                        isSelected: preferences.dateFormat == format,
+                        onTap: () => controller.setDateFormat(format),
+                      ),
+                  ],
+                ),
+                10.ph,
                 Text(
-                  user?.email ?? 'Non connecté',
+                  'Exemple : ${DateFormatter.numeric(DateTime.now())}',
                   style: const TextStyle(
                     color: AppColors.textMuted,
-                    fontSize: 13.5,
+                    fontSize: 12.5,
                   ),
                 ),
               ],
@@ -54,26 +144,54 @@ class SettingsPage extends ConsumerWidget {
           ),
           AppSize.cardSpacing.ph,
           AppCard(
-            title: 'Apparence',
-            icon: Icons.palette_outlined,
-            child: Wrap(
-              spacing: 10,
-              runSpacing: 10,
+            title: 'Devises et taux',
+            icon: Icons.currency_exchange_rounded,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                for (final mode in AppThemeMode.values)
-                  ChoiceChipTile(
-                    label: mode.label,
-                    icon: switch (mode) {
-                      AppThemeMode.system => Icons.brightness_auto_rounded,
-                      AppThemeMode.light => Icons.light_mode_rounded,
-                      AppThemeMode.dark => Icons.dark_mode_rounded,
-                    },
-                    isSelected: themeMode == mode,
-                    onTap: () => ref
-                        .read(settingsControllerProvider.notifier)
-                        .setThemeMode(mode),
+                const Text(
+                  'Additionnez des comptes de devises différentes grâce à vos '
+                  'taux de change mensuels.',
+                  style: TextStyle(
+                    color: AppColors.textMuted,
+                    fontSize: 13,
+                    height: 1.4,
                   ),
+                ),
+                14.ph,
+                _SettingsLink(
+                  icon: Icons.flag_outlined,
+                  label: 'Devise de référence',
+                  description: preferences.referenceCurrency == null
+                      ? 'Non définie — une devise à la fois'
+                      : preferences.referenceCurrency!.displayName,
+                  onTap: () => context.push(AppRoutes.currencies),
+                ),
               ],
+            ),
+          ),
+          AppSize.cardSpacing.ph,
+          AppCard(
+            title: 'Rappels',
+            icon: Icons.notifications_none_rounded,
+            child: _SettingsLink(
+              icon: Icons.alarm_rounded,
+              label: 'Saisie, point hebdo et mensuel',
+              description: preferences.reminders.hasAnyEnabled
+                  ? 'Rappels configurés'
+                  : 'Aucun rappel activé',
+              onTap: () => context.push(AppRoutes.reminders),
+            ),
+          ),
+          AppSize.cardSpacing.ph,
+          AppCard(
+            title: 'Données',
+            icon: Icons.inventory_2_outlined,
+            child: _SettingsLink(
+              icon: Icons.save_alt_rounded,
+              label: 'Sauvegarde et export',
+              description: 'Créer ou restaurer un fichier de sauvegarde',
+              onTap: () => context.push(AppRoutes.backup),
             ),
           ),
           AppSize.cardSpacing.ph,
@@ -83,15 +201,6 @@ class SettingsPage extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Là où vous décidez comment dépenser.',
-                  style: TextStyle(
-                    color: AppColors.textMuted,
-                    fontSize: 13,
-                    height: 1.4,
-                  ),
-                ),
-                14.ph,
                 _SettingsLink(
                   icon: Icons.category_outlined,
                   label: 'Catégories',
@@ -115,15 +224,6 @@ class SettingsPage extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Là où vous comprenez où part votre argent.',
-                  style: TextStyle(
-                    color: AppColors.textMuted,
-                    fontSize: 13,
-                    height: 1.4,
-                  ),
-                ),
-                14.ph,
                 _SettingsLink(
                   icon: Icons.insights_outlined,
                   label: 'Rapports et analyses',
@@ -141,16 +241,35 @@ class SettingsPage extends ConsumerWidget {
             ),
           ),
           AppSize.cardSpacing.ph,
-          AppOutlinedButton(
-            label: 'Se déconnecter',
-            icon: Icons.logout_rounded,
-            onPressed: () async {
-              await ref.read(authControllerProvider.notifier).signOut();
-              if (!context.mounted) return;
-              context.go(AppRoutes.login);
-            },
+          const Text(
+            'Toutes vos données restent sur ce téléphone.',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: AppColors.textMuted, fontSize: 12),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Intitulé discret au-dessus d'une rangée de pastilles.
+class _SettingsLabel extends StatelessWidget {
+  const _SettingsLabel(this.label);
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Text(
+        label.toUpperCase(),
+        style: const TextStyle(
+          color: AppColors.textMuted,
+          fontSize: 11,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 0.6,
+        ),
       ),
     );
   }

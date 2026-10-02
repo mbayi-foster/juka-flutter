@@ -7,12 +7,6 @@ class AppRoutes {
   static const String operations = '/operations';
   static const String settings = '/parametres';
 
-  // --- Authentification ---
-
-  static const String login = '/login';
-  static const String register = '/register';
-  static const String forgotPassword = '/forgot-password';
-
   // --- Comptes (sous-routes de l'onglet) ---
 
   /// Création d'un compte.
@@ -39,6 +33,18 @@ class AppRoutes {
 
   /// Budgets mensuels par catégorie.
   static const String budgets = '$settings/budgets';
+
+  /// Nom et code PIN.
+  static const String profile = '$settings/profil';
+
+  /// Rappels de saisie (quotidien, hebdomadaire, mensuel).
+  static const String reminders = '$settings/rappels';
+
+  /// Devises suivies et taux de change mensuels.
+  static const String currencies = '$settings/devises';
+
+  /// Sauvegarde, export et import des données.
+  static const String backup = '$settings/sauvegarde';
 
   // --- Patrimoine (sous-route du tableau de bord) ---
 

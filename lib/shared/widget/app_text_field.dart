@@ -19,6 +19,7 @@ class AppTextField extends StatefulWidget {
     this.textCapitalization = TextCapitalization.none,
     this.isPassword = false,
     this.enabled = true,
+    this.autofocus = false,
     this.autofillHints,
     this.inputFormatters,
     this.prefixIcon,
@@ -43,6 +44,9 @@ class AppTextField extends StatefulWidget {
   /// Affiche un bouton pour révéler/masquer la saisie.
   final bool isPassword;
   final bool enabled;
+
+  /// Place le curseur dans le champ dès l'affichage de l'écran.
+  final bool autofocus;
   final Iterable<String>? autofillHints;
   final List<TextInputFormatter>? inputFormatters;
   final Widget? prefixIcon;
@@ -79,6 +83,7 @@ class _AppTextFieldState extends State<AppTextField> {
       initialValue: hasController ? null : widget.initialValue,
       focusNode: widget.focusNode,
       enabled: widget.enabled,
+      autofocus: widget.autofocus,
       obscureText: widget.isPassword && _obscureText,
       keyboardType: widget.keyboardType,
       textInputAction: widget.textInputAction,
