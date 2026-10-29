@@ -2,16 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:juka/features/settings/domain/enums/app_theme_mode.dart';
-import 'package:juka/features/settings/presentation/pages/lock_page.dart';
-import 'package:juka/features/settings/presentation/pages/onboarding_page.dart';
 import 'package:juka/features/settings/presentation/providers/settings_providers.dart';
-import 'package:juka/features/settings/presentation/state/settings_state.dart';
 import 'package:juka/routes/app_router.dart';
 import 'package:juka/shared/theme/app_theme.dart';
-import 'package:juka/shared/widget/loading_view.dart';
 
 /// Racine de l'application : thème et langue choisis par l'utilisateur, puis
-/// porte d'accès (bienvenue / code PIN) avant la table de routage.
+/// table de routage (qui gère aussi l'accueil et le code PIN par redirection).
 class MyApp extends ConsumerStatefulWidget {
   const MyApp({super.key});
 
@@ -64,36 +60,7 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      routerConfig: AppRouter.router,
-      builder: (context, child) => _AccessGate(state: settings, child: child),
+      routerConfig: ref.watch(routerProvider),
     );
-  }
-}
-
-/// Décide de ce qui s'affiche : préparation, bienvenue, verrouillage ou
-/// contenu de l'application.
-///
-/// Le blocage est fait ici — et non dans la table de routage — parce que
-/// `AppRouter.router` est une constante statique : elle ne se reconstruit pas
-/// quand les préférences changent.
-class _AccessGate extends StatelessWidget {
-  const _AccessGate({required this.state, required this.child});
-
-  final SettingsState state;
-
-  /// Contenu routé, remplacé tant que l'accès n'est pas accordé.
-  final Widget? child;
-
-  @override
-  Widget build(BuildContext context) {
-    if (!state.isReady) {
-      return const Scaffold(
-        body: LoadingView(message: 'Préparation de vos données…'),
-      );
-    }
-    if (state.needsOnboarding) return const OnboardingPage();
-    if (state.isLocked) return const LockPage();
-
-    return child ?? const SizedBox.shrink();
   }
 }

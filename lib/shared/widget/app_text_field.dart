@@ -20,6 +20,9 @@ class AppTextField extends StatefulWidget {
     this.isPassword = false,
     this.enabled = true,
     this.autofocus = false,
+    this.enableSuggestions = false,
+    this.autocorrect = false,
+    this.enableIMEPersonalizedLearning = false,
     this.autofillHints,
     this.inputFormatters,
     this.prefixIcon,
@@ -47,6 +50,21 @@ class AppTextField extends StatefulWidget {
 
   /// Place le curseur dans le champ dès l'affichage de l'écran.
   final bool autofocus;
+
+  /// Active la barre de suggestions du clavier.
+  ///
+  /// À désactiver sur un nom propre ou un code : la prédiction du clavier
+  /// réinjecte parfois le texte qui vient d'être effacé.
+  final bool enableSuggestions;
+
+  /// Active la correction automatique du clavier.
+  final bool autocorrect;
+
+  /// Autorise le clavier à mémoriser la saisie pour ses suggestions.
+  ///
+  /// À désactiver sur un code secret : le clavier ne doit pas l'apprendre ni
+  /// le reproposer ensuite.
+  final bool enableIMEPersonalizedLearning;
   final Iterable<String>? autofillHints;
   final List<TextInputFormatter>? inputFormatters;
   final Widget? prefixIcon;
@@ -90,6 +108,9 @@ class _AppTextFieldState extends State<AppTextField> {
       textCapitalization: widget.textCapitalization,
       textAlign: widget.textAlign,
       autofillHints: widget.autofillHints,
+      enableSuggestions: widget.enableSuggestions,
+      autocorrect: widget.autocorrect,
+      enableIMEPersonalizedLearning: widget.enableIMEPersonalizedLearning,
       inputFormatters: widget.inputFormatters,
       validator: widget.validator,
       onChanged: widget.onChanged,

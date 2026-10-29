@@ -1,4 +1,15 @@
 class AppRoutes {
+  // --- Portes d'accès (affichées avant le contenu de l'application) ---
+
+  /// Préparation des données locales au démarrage.
+  static const String splash = '/chargement';
+
+  /// Première ouverture : nom et code PIN.
+  static const String onboarding = '/bienvenue';
+
+  /// Déverrouillage par code PIN.
+  static const String lock = '/verrouillage';
+
   // --- Onglets principaux (barre de navigation inférieure) ---
 
   /// Tableau de bord : écran affiché au démarrage de l'application.

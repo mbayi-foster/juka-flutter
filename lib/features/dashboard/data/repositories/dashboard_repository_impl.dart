@@ -116,12 +116,12 @@ class DashboardRepositoryImpl implements DashboardRepository {
         accountIds,
       );
 
-      final spent = _spentByCategory(operations, categories);
+      final spent = _spentByCategory(operations);
       final progress = buildBudgetProgress(
         categories: categories,
         budgets: budgets,
         spent: spent,
-        previousSpent: _spentByCategory(previousOperations, categories),
+        previousSpent: _spentByCategory(previousOperations),
       );
       final flow = _flow(operations);
 
@@ -215,11 +215,12 @@ class DashboardRepositoryImpl implements DashboardRepository {
   /// Opérations d'un mois donné (bornes incluses), tous comptes confondus.
   List<Operation> _inMonth(List<Operation> operations, DateTime month) {
     final start = DateTime(month.year, month.month);
-    final end = DateTime(month.year, month.month + 1, 0, 23, 59, 59);
+    final nextMonth = DateTime(month.year, month.month + 1);
 
     return [
       for (final operation in operations)
-        if (!operation.date.isBefore(start) && !operation.date.isAfter(end))
+        if (!operation.date.isBefore(start) &&
+            operation.date.isBefore(nextMonth))
           operation,
     ];
   }
@@ -275,18 +276,19 @@ class DashboardRepositoryImpl implements DashboardRepository {
 
   /// Dépenses brutes par identifiant de catégorie.
   ///
+  /// Toutes les dépenses sont conservées, y compris celles dont la catégorie
+  /// n'existe plus : le formulaire des opérations propose encore l'énumération
+  /// historique, donc une catégorie par défaut supprimée peut toujours être
+  /// utilisée. La répartition ne doit jamais afficher moins que le total des
+  /// dépenses du mois.
+  ///
   /// La remontée des sous-catégories est laissée à `buildBudgetProgress`.
-  Map<String, double> _spentByCategory(
-    List<Operation> operations,
-    List<Category> categories,
-  ) {
-    final known = {for (final category in categories) category.id};
+  Map<String, double> _spentByCategory(List<Operation> operations) {
     final spent = <String, double>{};
 
     for (final operation in operations) {
       if (!operation.isExpense) continue;
       final id = operation.category.id;
-      if (!known.contains(id)) continue;
       spent.update(
         id,
         (total) => total + operation.amount,

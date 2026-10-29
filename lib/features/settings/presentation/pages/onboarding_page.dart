@@ -43,14 +43,37 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
   }
 
   void _goToPinStep() {
-    FocusScope.of(context).unfocus();
+    _endInput();
     if (!(_nameFormKey.currentState?.validate() ?? false)) return;
     setState(() => _step = 1);
   }
 
+  void _backToNameStep() {
+    _endInput();
+    setState(() => _step = 0);
+  }
+
+  void _togglePin(bool value) {
+    _endInput();
+    setState(() => _withPin = value);
+  }
+
+  /// Referme le clavier et valide la composition en cours (mot en cours de
+  /// correction ou de prédiction).
+  ///
+  /// Sans cela, lorsqu'un champ est reconstruit (changement d'étape, bascule
+  /// du code PIN), certains claviers Android réinjectent la dernière saisie :
+  /// le texte effacé réapparaît.
+  void _endInput() {
+    FocusScope.of(context).unfocus();
+    _nameController.clearComposing();
+    _pinController.clearComposing();
+    _confirmController.clearComposing();
+  }
+
   /// Termine l'accueil. Sans code PIN, [pin] reste `null`.
   Future<void> _finish({bool withPin = true}) async {
-    FocusScope.of(context).unfocus();
+    _endInput();
     final usePin = withPin && _withPin;
 
     if (usePin && !(_pinFormKey.currentState?.validate() ?? false)) return;
@@ -102,11 +125,16 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
           ),
           AppSize.sectionSpacing.ph,
           AppTextField(
+            key: const ValueKey('onboarding.name'),
             label: 'Votre nom',
             hintText: 'Mayisha',
             controller: _nameController,
             textCapitalization: TextCapitalization.words,
             textInputAction: TextInputAction.done,
+            // Un prénom n'est pas dans le dictionnaire du clavier : la
+            // correction automatique réinsérait le texte déjà effacé.
+            enableSuggestions: false,
+            autocorrect: false,
             prefixIcon: const Icon(Icons.person_outline_rounded, size: 20),
             validator: (value) =>
                 AppValidators.personName(value, label: 'Votre nom'),
@@ -145,7 +173,7 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
           AppSize.sectionSpacing.ph,
           SwitchListTile.adaptive(
             value: _withPin,
-            onChanged: (value) => setState(() => _withPin = value),
+            onChanged: _togglePin,
             contentPadding: EdgeInsets.zero,
             activeThumbColor: AppColors.primary,
             title: const Text('Créer un code PIN'),
@@ -160,11 +188,15 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
           if (_withPin) ...[
             8.ph,
             AppTextField(
+              key: const ValueKey('onboarding.pin'),
               label: 'Code PIN',
               controller: _pinController,
               isPassword: true,
               keyboardType: TextInputType.number,
               textInputAction: TextInputAction.next,
+              enableSuggestions: false,
+              autocorrect: false,
+              enableIMEPersonalizedLearning: false,
               prefixIcon: const Icon(Icons.pin_outlined, size: 20),
               inputFormatters: [
                 FilteringTextInputFormatter.digitsOnly,
@@ -176,11 +208,15 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
             ),
             AppSize.fieldSpacing.ph,
             AppTextField(
+              key: const ValueKey('onboarding.pinConfirm'),
               label: 'Confirmer le code PIN',
               controller: _confirmController,
               isPassword: true,
               keyboardType: TextInputType.number,
               textInputAction: TextInputAction.done,
+              enableSuggestions: false,
+              autocorrect: false,
+              enableIMEPersonalizedLearning: false,
               prefixIcon: const Icon(Icons.pin_outlined, size: 20),
               inputFormatters: [
                 FilteringTextInputFormatter.digitsOnly,
@@ -205,7 +241,7 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
           ),
           AppSize.fieldSpacing.ph,
           TextButton.icon(
-            onPressed: _isSaving ? null : () => setState(() => _step = 0),
+            onPressed: _isSaving ? null : _backToNameStep,
             icon: const Icon(Icons.arrow_back_rounded, size: 18),
             label: const Text('Modifier mon nom'),
           ),
